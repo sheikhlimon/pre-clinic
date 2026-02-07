@@ -11,32 +11,74 @@ interface Message {
   content: string;
 }
 
-async function handleExtractionAndSearch(fullText: string) {
+interface TrialResult {
+  nctId: string;
+  title: string;
+  relevanceScore: number;
+  matchReasons: string[];
+}
+
+async function handleExtractionAndSearch(
+  fullText: string,
+  encoder: TextEncoder,
+  controller: ReadableStreamDefaultController<Uint8Array>
+): Promise<TrialResult[] | null> {
   const jsonMatch = fullText.match(JSON_REGEX);
   if (!jsonMatch) {
-    return;
+    // eslint-disable-next-line no-console
+    console.log("No JSON extraction found in response");
+    return null;
   }
 
   try {
     const extraction = ExtractionSchema.parse(JSON.parse(jsonMatch[1]));
+    // eslint-disable-next-line no-console
+    console.log("Extraction parsed:", extraction);
 
     if (!extraction.readyToSearch || extraction.conditions.length === 0) {
-      return;
+      // eslint-disable-next-line no-console
+      console.log("Not ready to search or no conditions");
+      return null;
     }
 
     const conditionNames = extraction.conditions.map((c) => c.name);
+    // eslint-disable-next-line no-console
+    console.log("Searching for conditions:", conditionNames);
+
     const searchResults = await searchTrials({
       conditions: conditionNames,
       age: extraction.age,
     });
-    const rankedTrials = rankTrials(searchResults, extraction);
-
     // eslint-disable-next-line no-console
-    console.log(`Found ${rankedTrials.length} ranked trials`);
+    console.log("Found trials from API:", searchResults.length);
+
+    const rankedTrials = rankTrials(searchResults, extraction);
+    // eslint-disable-next-line no-console
+    console.log("Ranked trials:", rankedTrials.length);
+
+    // Send trials to frontend
+    const trialsData = rankedTrials.slice(0, 5).map((t) => ({
+      nctId: t.trial.nctId,
+      title: t.trial.title,
+      relevanceScore: t.relevanceScore,
+      matchReasons: t.matchReasons,
+    }));
+
+    controller.enqueue(
+      encoder.encode(
+        `data: ${JSON.stringify({
+          content: `\n\nFound ${rankedTrials.length} matching trials.`,
+          trials: trialsData,
+        })}\n\n`
+      )
+    );
+
+    return trialsData;
   } catch (e) {
     // Parsing error, continue
     // eslint-disable-next-line no-console
-    console.error("Extraction parsing error:", e);
+    console.error("Extraction/search error:", e);
+    return null;
   }
 }
 
@@ -125,7 +167,7 @@ export async function POST(req: NextRequest) {
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
-              await handleExtractionAndSearch(fullText);
+              await handleExtractionAndSearch(fullText, encoder, controller);
               break;
             }
 
