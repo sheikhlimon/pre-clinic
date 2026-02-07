@@ -2,7 +2,7 @@
 
 export default function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100vh-4rem)] items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[60vh] items-center justify-center overflow-hidden py-12">
       {/* Background gradient + blur */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#1A2F23] to-[#F5F2ED]" />
       <div className="absolute top-20 right-20 -z-10 h-96 w-96 rounded-full bg-primary/20 opacity-20 blur-[100px]" />
@@ -39,7 +39,7 @@ export default function Hero() {
                   type="text"
                 />
                 <p className="text-muted-foreground text-xs">
-                  Scroll down to start chatting
+                  Start chatting below
                 </p>
               </div>
             </div>

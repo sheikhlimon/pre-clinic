@@ -9,15 +9,15 @@ export default function ChatMessage({ role, content }: ChatMessageProps) {
   const isUser = role === "user";
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`max-w-xs rounded-lg px-4 py-2 text-sm ${
+        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm ${
           isUser
             ? "bg-primary text-primary-foreground"
-            : "bg-muted text-muted-foreground"
+            : "bg-muted text-foreground"
         }`}
       >
-        <p className="whitespace-pre-wrap">{content}</p>
+        <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
       </div>
     </div>
   );

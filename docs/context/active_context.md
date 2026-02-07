@@ -1,7 +1,22 @@
 # Active Context
 
 ## Current Task
-🟢 **PHASES 0 & 1 COMPLETE** - MVP Ready
+🔧 **Redesigning to Superdesign.dev Layout**
+
+**Prompt Being Used:**
+```
+Redesign page to match Superdesign.dev - everything on one screen:
+- Remove separate Header - move logo INTO hero
+- Single full-screen: Logo + headline (top), Chat (remaining space)
+- No scrolling - everything fits in viewport
+- Dark mode toggle in top-right
+- Style: Minimal, centered, Claude Web + Superdesign vibe
+```
+
+**Changes:**
+- page.tsx: Integrated single-screen layout
+- hero.tsx: Compact with logo + dark toggle
+- chat-interface.tsx: Takes remaining viewport height
 
 **Completed:**
 - ✅ Phase 0: Chat UI components (committed: 6200ed5)
