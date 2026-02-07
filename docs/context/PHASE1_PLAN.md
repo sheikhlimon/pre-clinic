@@ -2,9 +2,10 @@
 
 ## Context
 Phase 0 created the beautiful UI with placeholder data. Phase 1 connects it to real AI:
-- Claude 3.5 Sonnet for conversational extraction
+- Claude 3.5 Sonnet (via OpenRouter) for conversational extraction
 - ClinicalTrials.gov API V2 for trial search
 - Trial ranking algorithm based on symptom similarity
+- **No database**: localStorage for chat history (hackathon scope)
 
 ## Goals
 - ✅ Claude API integration for conversational questions + extraction
@@ -70,19 +71,11 @@ export type Trial = z.infer<typeof TrialSchema>;
 export type RankedTrial = z.infer<typeof RankedTrialSchema>;
 ```
 
-### Step 1.3: Create Claude Client
-**File**: `apps/web/src/lib/claude-client.ts`
+### Step 1.3: Create System Prompt (for Claude)
+**File**: `apps/web/src/lib/prompts.ts`
 
 ```typescript
-import { Anthropic } from "@anthropic-ai/sdk";
-import type { Extraction } from "./schemas";
-
-const client = new Anthropic({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
-
-const SYSTEM_PROMPT = `You are a compassionate medical assistant helping patients discover clinical trials.
+export const SYSTEM_PROMPT = `You are a compassionate medical assistant helping patients discover clinical trials.
 
 Your role:
 1. Ask ONE clarifying question at a time
@@ -95,7 +88,8 @@ Your role:
 
 Always be empathetic. Never diagnose. Always recommend consulting a healthcare provider.
 
-Example extraction:
+When showing extraction, format as:
+\`\`\`json
 {
   "age": 62,
   "symptoms": ["fatigue", "shortness of breath", "weight loss"],
@@ -106,41 +100,11 @@ Example extraction:
     { "name": "Lymphoma", "probability": 72, "reason": "Weight loss + fatigue pattern" }
   ],
   "readyToSearch": true
-}`;
-
-export async function extractFromConversation(
-  messages: Array<{ role: "user" | "assistant"; content: string }>
-): Promise<{
-  response: string;
-  extraction?: Extraction;
-}> {
-  const response = await client.messages.create({
-    model: "claude-3-5-sonnet-20241022",
-    max_tokens: 1000,
-    system: SYSTEM_PROMPT,
-    messages: messages.map(msg => ({
-      role: msg.role,
-      content: msg.content,
-    })),
-  });
-
-  const responseText = response.content[0].type === "text" 
-    ? response.content[0].text 
-    : "";
-
-  // Try to extract JSON extraction from response
-  let extraction: Extraction | undefined;
-  try {
-    const jsonMatch = responseText.match(/\{[\s\S]*"readyToSearch"[\s\S]*\}/);
-    if (jsonMatch) {
-      extraction = JSON.parse(jsonMatch[0]);
-    }
-  } catch (e) {
-    // No extraction yet, that's ok
-  }
-
-  return { response: responseText, extraction };
 }
+\`\`\``;
+```
+
+**Note**: Claude extraction happens server-side in /api/chat (via Vercel AI SDK)
 ```
 
 ### Step 1.4: Create ClinicalTrials.gov Client
@@ -261,64 +225,70 @@ export function rankTrials(
 }
 ```
 
-### Step 1.6: Create Chat API Route
+### Step 1.6: Create Chat API Route (with Vercel AI SDK)
 **File**: `apps/web/src/app/api/chat/route.ts`
 
 ```typescript
-import { NextRequest, NextResponse } from "next/server";
-import { extractFromConversation } from "@/lib/claude-client";
+import { NextRequest } from "next/server";
+import { streamText } from "ai";
+import { openai } from "@ai-sdk/openrouter";
+import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { searchTrials } from "@/lib/clinical-trials-client";
 import { rankTrials } from "@/lib/trial-ranking";
-import { ExtractionSchema } from "@/lib/schemas";
 
-interface ChatRequest {
-  messages: Array<{ role: "user" | "assistant"; content: string }>;
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const { messages } = (await req.json()) as ChatRequest;
+  const { messages } = (await req.json()) as { messages: ChatMessage[] };
 
-    if (!messages || messages.length === 0) {
-      return NextResponse.json({ error: "No messages" }, { status: 400 });
+  // Use Vercel AI SDK with OpenRouter + Claude
+  const result = streamText({
+    model: openai("claude-3-5-sonnet-20241022", {
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: "https://openrouter.ai/api/v1",
+    }),
+    system: SYSTEM_PROMPT,
+    messages,
+    maxTokens: 1000,
+    temperature: 0.7,
+  });
+
+  // When streaming complete, check if ready to search
+  result.then(async (stream) => {
+    const fullText = await stream.text;
+    
+    // Check if extraction JSON in response
+    const jsonMatch = fullText.match(/```json\n([\s\S]*?)\n```/);
+    if (jsonMatch) {
+      try {
+        const extraction = JSON.parse(jsonMatch[1]);
+        if (extraction.readyToSearch && extraction.conditions?.length > 0) {
+          const conditionNames = extraction.conditions.map((c: any) => c.name);
+          const searchResults = await searchTrials({
+            conditions: conditionNames,
+            age: extraction.age,
+          });
+          const trials = rankTrials(searchResults, extraction);
+          // Append trials to stream (handled by frontend)
+        }
+      } catch (e) {
+        // Parsing error, continue
+      }
     }
+  }).catch(console.error);
 
-    // Get Claude response + extraction
-    const { response, extraction } = await extractFromConversation(messages);
-
-    // If ready to search, search for trials
-    let trials = null;
-    if (extraction?.readyToSearch && extraction.conditions.length > 0) {
-      const conditionNames = extraction.conditions.map(c => c.name);
-      const searchResults = await searchTrials({
-        conditions: conditionNames,
-        age: extraction.age,
-      });
-
-      // Rank trials
-      trials = rankTrials(searchResults, extraction);
-    }
-
-    return NextResponse.json({
-      response,
-      extraction: extraction ? {
-        age: extraction.age,
-        symptoms: extraction.symptoms,
-        duration: extraction.duration,
-        conditions: extraction.conditions,
-        readyToSearch: extraction.readyToSearch,
-      } : null,
-      trials: trials || null,
-    });
-  } catch (error) {
-    console.error("Chat API error:", error);
-    return NextResponse.json(
-      { error: "Failed to process message" },
-      { status: 500 }
-    );
-  }
+  return result.toTextStreamResponse();
 }
 ```
+
+**How it works**:
+- Frontend sends messages via useChat()
+- API route streams Claude response via Vercel AI SDK
+- When extraction JSON detected, server searches trials
+- Frontend displays streamed text + extraction + trials
 
 ### Step 1.7: Update ChatInterface Component
 **File**: `apps/web/src/components/chat/chat-interface.tsx`
@@ -337,19 +307,24 @@ Connect to the API:
 
 ## Files to Create
 1. **NEW**: `apps/web/src/lib/schemas.ts` - Zod schemas
-2. **NEW**: `apps/web/src/lib/claude-client.ts` - Claude integration
+2. **NEW**: `apps/web/src/lib/prompts.ts` - System prompt
 3. **NEW**: `apps/web/src/lib/clinical-trials-client.ts` - API client
 4. **NEW**: `apps/web/src/lib/trial-ranking.ts` - Ranking algorithm
 5. **NEW**: `apps/web/src/app/api/chat/route.ts` - Chat endpoint
 
 ## Files to Modify
-1. `apps/web/src/components/chat/chat-interface.tsx` - Connect to API
-2. `.env.local` - Add API keys
+1. `apps/web/src/components/chat/chat-interface.tsx` - Connect to API (useChat hook)
+2. `.env.local` - Add OPENROUTER_API_KEY
+
+## Dependencies Already Available
+- `ai` package (Vercel AI SDK) - should already be installed
+- `zod` - likely already installed
+- `@ai-sdk/openrouter` - NEW (need to install)
 
 ## Dependencies to Install
 ```bash
-npm install @anthropic-ai/sdk
-npm install zod
+npm install @ai-sdk/openrouter
+npm install zod  # if not already installed
 ```
 
 ## Verification Checklist
@@ -380,10 +355,15 @@ npm install zod
 5. `[test] verify extraction + trials with real data`
 
 ## Notes
-- No database needed for hackathon MVP (just chat in memory)
-- Claude streaming could be added for longer responses
-- ClinicalTrials.gov API is free, no auth needed
-- Error handling: Show user-friendly messages
+- **No database**: localStorage handles chat history (frontend)
+- **Streaming**: Vercel AI SDK handles streaming automatically
+- **API calls**: Server-side only (ClinicalTrials.gov + extraction)
+- **Error handling**: Show user-friendly messages
+- **localStorage flow**:
+  - useChat hook manages messages state
+  - Messages auto-saved to localStorage on each update
+  - Chat persists across page refreshes
+  - No backend persistence needed
 
 ## Related Context
 - Phase 0: UI components (PHASE0_PLAN.md)
