@@ -1,24 +1,21 @@
 # Active Context
 
 ## Current Task
-🟡 **PHASE 0 IMPLEMENTATION - Step 0.2 NEXT** - Chat Components
+🟢 **PHASES 0 & 1 COMPLETE** - MVP Ready
 
-**Blocking Dependencies:**
-- None (hero section complete and committed)
+**Completed:**
+- ✅ Phase 0: Chat UI components (committed: 6200ed5)
+- ✅ Phase 1: Backend API + extraction (committed: ba29b67, e6dc5d9)
+- ✅ localStorage integration for chat history
+- ✅ Vercel AI SDK streaming setup
+- ✅ OpenRouter integration for Claude 3.5 Sonnet
 
-**What's Done:**
-- ✅ Step 0.1: Hero section (committed: 939a44c)
-  - Created components/landing/hero.tsx
-  - Redesigned app/page.tsx
-  - Simplified header.tsx
-
-**Next Step:**
-- Step 0.2-0.6: Chat interface components
-  - Create chat-interface.tsx
-  - Create chat-message.tsx
-  - Create extraction-panel.tsx
-  - Create trial-card.tsx
-  - Create chat-input.tsx
+**What's Live:**
+- Conversational chat interface (hero → chat flow)
+- Extraction panel showing AI understanding
+- Trial ranking algorithm by condition probability + eligibility
+- ClinicalTrials.gov API client (free, no auth)
+- localStorage chat persistence
 
 **Commit Style:**
 - Format: `npm exec -- ultracite fix`
