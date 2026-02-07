@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Baby, Stethoscope } from "lucide-react";
+import { Activity, Baby, Search, Stethoscope } from "lucide-react";
 
 interface Condition {
   name: string;
@@ -12,6 +12,7 @@ interface ExtractionPanelProps {
   symptoms: string[];
   conditions: Condition[];
   status: "gathering" | "extracting" | "searching" | "complete";
+  onSearchClick?: () => void;
 }
 
 export default function ExtractionPanel({
@@ -19,6 +20,7 @@ export default function ExtractionPanel({
   symptoms,
   conditions,
   status,
+  onSearchClick,
 }: ExtractionPanelProps) {
   const statusText = {
     gathering: "Gathering information...",
@@ -60,7 +62,7 @@ export default function ExtractionPanel({
             <p className="mb-2 font-medium text-stone-700 dark:text-stone-300">
               Possible conditions:
             </p>
-            <div className="space-y-1.5">
+            <div className="mb-3 space-y-1.5">
               {conditions.map((condition) => (
                 <div
                   className="flex items-center justify-between rounded-lg bg-white/50 px-3 py-2 dark:bg-stone-900/50"
@@ -74,6 +76,18 @@ export default function ExtractionPanel({
               ))}
             </div>
           </div>
+        )}
+
+        {/* Search button when ready */}
+        {status === "complete" && onSearchClick && (
+          <button
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-rose-400 to-rose-600 px-4 py-2.5 font-medium text-white text-xs shadow-lg shadow-rose-500/10 transition-all hover:shadow-rose-500/20 hover:shadow-xl"
+            onClick={onSearchClick}
+            type="button"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>Search for matching trials</span>
+          </button>
         )}
 
         <p className="pt-2 text-muted-foreground text-xs italic">

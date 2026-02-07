@@ -32,6 +32,34 @@ export default function ChatInterface() {
   const [trials, setTrials] = useState<TrialData[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Manual search for trials
+  const handleSearchTrials = async () => {
+    setExtraction((prev) => ({ ...prev, status: "searching" }));
+
+    try {
+      const response = await fetch("/api/search-trials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          age: extraction.age,
+          conditions: extraction.conditions.map((c) => c.name),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Search failed");
+      }
+
+      const data = (await response.json()) as { trials: TrialData[] };
+      setTrials(data.trials);
+      setExtraction((prev) => ({ ...prev, status: "complete" }));
+    } catch (_error) {
+      // eslint-disable-next-line no-console
+      console.error("Search failed:", _error);
+      setExtraction((prev) => ({ ...prev, status: "complete" }));
+    }
+  };
+
   // Parse extraction and trials from AI messages
   useEffect(() => {
     const lastMessage = messages.at(-1);
@@ -122,6 +150,9 @@ export default function ChatInterface() {
                   <ExtractionPanel
                     age={extraction.age}
                     conditions={extraction.conditions}
+                    onSearchClick={
+                      trials.length === 0 ? handleSearchTrials : undefined
+                    }
                     status={trials.length > 0 ? "complete" : extraction.status}
                     symptoms={extraction.symptoms}
                   />
