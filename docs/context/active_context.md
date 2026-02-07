@@ -1,30 +1,28 @@
 # Active Context
 
 ## Current Task
-🟡 **PHASE 0 IMPLEMENTATION - Step 0.1 IN PROGRESS** - Hero Section
+🟡 **PHASE 0 IMPLEMENTATION - Step 0.2 NEXT** - Chat Components
 
 **Blocking Dependencies:**
-- None
+- None (hero section complete and committed)
 
-**Current Step:**
-- Step 0.1: Redesign landing page hero (Superdesign style)
-- Files created: hero.tsx, updated page.tsx, simplified header.tsx
-- Next: Run ultracite fix + commit
+**What's Done:**
+- ✅ Step 0.1: Hero section (committed: 939a44c)
+  - Created components/landing/hero.tsx
+  - Redesigned app/page.tsx
+  - Simplified header.tsx
 
-**What's Done So Far:**
-- ✅ Created components/landing/hero.tsx (beautiful hero with gradient)
-- ✅ Redesigned app/page.tsx (removed Features + CTA buttons)
-- ✅ Simplified header.tsx (removed nav links, logo only)
+**Next Step:**
+- Step 0.2-0.6: Chat interface components
+  - Create chat-interface.tsx
+  - Create chat-message.tsx
+  - Create extraction-panel.tsx
+  - Create trial-card.tsx
+  - Create chat-input.tsx
 
-**Remaining Phase 0 Steps:**
-1. ✅ Step 0.1: Hero section (IN PROGRESS)
-2. ⏳ Step 0.2-0.6: Chat interface components
-3. ⏳ Step 0.7: Page layout integration
-4. ⏳ Step 0.8-0.10: Design system + mobile + dark mode
-
-**Code Standards:**
-- Format: `npm exec -- ultracite fix` before each commit
-- Commit: `[feat] short description` (per CLAUDE.md)
+**Commit Style:**
+- Format: `npm exec -- ultracite fix`
+- Commit: `feat: description` (no brackets)
 - One logical change per commit
 
 ## MVP Flow (Conversational + Educational)
