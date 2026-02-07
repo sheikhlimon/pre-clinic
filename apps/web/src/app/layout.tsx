@@ -17,8 +17,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "pre-clinic",
-  description: "pre-clinic",
+  title: "Pre-Clinic | Find Clinical Trials",
+  description:
+    "AI-powered symptom-to-trial matching platform connecting patients with life-changing clinical research opportunities.",
 };
 
 export default function RootLayout({

@@ -21,12 +21,14 @@ export default function AIPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text) return;
+    if (!text) {
+      return;
+    }
     sendMessage({ text });
     setInput("");
   };

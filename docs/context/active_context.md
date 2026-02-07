@@ -1,34 +1,31 @@
 # Active Context
 
 ## Current Task
-🔴 **PHASE 0 IMPLEMENTATION** - Landing Page + Chat UI
+🟡 **PHASE 0 IMPLEMENTATION - Step 0.1 IN PROGRESS** - Hero Section
 
 **Blocking Dependencies:**
-- None (planning complete)
+- None
 
-**Task Details:**
-- Build beautiful chat interface (Superdesign.dev style)
-- Create extraction panel (shows AI understanding)
-- Create trial card component (visual scoring)
-- Update landing page layout
-- Mobile + dark mode support
+**Current Step:**
+- Step 0.1: Redesign landing page hero (Superdesign style)
+- Files created: hero.tsx, updated page.tsx, simplified header.tsx
+- Next: Run ultracite fix + commit
 
-**Related Plans:**
-- See `PHASE0_PLAN.md` for detailed steps
-- See `PHASE1_PLAN.md` for backend integration (next)
-- See `HACKATHON_BRIEF.md` for complete context
+**What's Done So Far:**
+- ✅ Created components/landing/hero.tsx (beautiful hero with gradient)
+- ✅ Redesigned app/page.tsx (removed Features + CTA buttons)
+- ✅ Simplified header.tsx (removed nav links, logo only)
 
-**What's Already Done:**
-- ✅ Current landing page exists (Hero + Features + CTAs)
-- ✅ Header components exist
-- ✅ shadcn/ui library available
-- ✅ Design system defined (Bio-Luxe colors)
+**Remaining Phase 0 Steps:**
+1. ✅ Step 0.1: Hero section (IN PROGRESS)
+2. ⏳ Step 0.2-0.6: Chat interface components
+3. ⏳ Step 0.7: Page layout integration
+4. ⏳ Step 0.8-0.10: Design system + mobile + dark mode
 
-**Current Implementation Plan:**
-1. Commit 1: Redesign page.tsx + create hero component
-2. Commit 2: Create chat interface components (message, input, extraction panel)
-3. Commit 3: Create trial card component
-4. Commit 4: Add mobile responsive + dark mode
+**Code Standards:**
+- Format: `npm exec -- ultracite fix` before each commit
+- Commit: `[feat] short description` (per CLAUDE.md)
+- One logical change per commit
 
 ## MVP Flow (Conversational + Educational)
 

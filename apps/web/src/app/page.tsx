@@ -1,30 +1,26 @@
-"use client";
-
-const TITLE_TEXT = `
- ██████╗ ███████╗████████╗████████╗███████╗██████╗
- ██╔══██╗██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
- ██████╔╝█████╗     ██║      ██║   █████╗  ██████╔╝
- ██╔══██╗██╔══╝     ██║      ██║   ██╔══╝  ██╔══██╗
- ██████╔╝███████╗   ██║      ██║   ███████╗██║  ██║
- ╚═════╝ ╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
-
- ████████╗    ███████╗████████╗ █████╗  ██████╗██╗  ██╗
- ╚══██╔══╝    ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-    ██║       ███████╗   ██║   ███████║██║     █████╔╝
-    ██║       ╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-    ██║       ███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-    ╚═╝       ╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- `;
+import Hero from "@/components/landing/hero";
 
 export default function Home() {
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-2">
-      <pre className="overflow-x-auto font-mono text-sm">{TITLE_TEXT}</pre>
-      <div className="grid gap-6">
-        <section className="rounded-lg border p-4">
-          <h2 className="mb-2 font-medium">API Status</h2>
-        </section>
-      </div>
-    </div>
+    <main className="min-h-screen">
+      {/* Hero Section */}
+      <Hero />
+
+      {/* Chat Interface Placeholder - Phase 0 next step */}
+      <section className="px-4 py-24 md:px-6 md:py-32">
+        <div className="container max-w-4xl">
+          <p className="text-center text-muted-foreground">
+            Chat interface coming next...
+          </p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t px-4 py-12 md:px-6">
+        <div className="container text-center text-muted-foreground text-sm">
+          <p>© 2026 Pre-Clinic. Healthcare Hackathon Project.</p>
+        </div>
+      </footer>
+    </main>
   );
 }
