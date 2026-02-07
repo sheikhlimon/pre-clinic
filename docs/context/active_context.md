@@ -1,15 +1,24 @@
 # Active Context
 
 ## Current Task
-✅ **Frontend Redesign Complete**
+🎨 **Modern UI Redesign - Dynamic + Aesthetic**
 
-**Completed:**
-- ✅ Single-screen Superdesign layout
-- ✅ Empathic healthcare colors (teal/emerald + warm orange)
-- ✅ Wider chat messages (max-w-[85%])
-- ✅ Extraction panel with orange tones
-- ✅ Trial cards with teal gradients
-- ✅ Auto-scroll on new messages
+**Prompt:**
+```
+Redesign to feel dynamic, modern, alive:
+- Colors: terracotta/coral + sage + indigo (NOT emerald)
+- Animations: fade-in, slide-up, hover effects
+- Icons throughout (Lucide React)
+- Glass morphism, subtle shadows, rounded corners
+- Premium healthcare vibe like Claude Web + Linear.app
+```
+
+**Changes:**
+- Color palette: warm terracotta, soft sage, deep indigo
+- Add icons to all components
+- Add animations (fade-in, hover, smooth transitions)
+- Loading skeletons
+- Better spacing and depth
 
 **Completed:**
 - ✅ Phase 0: Chat UI components (committed: 6200ed5)

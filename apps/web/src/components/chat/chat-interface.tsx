@@ -1,26 +1,20 @@
 "use client";
 
+import { Loader2, MessageCircle, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import type { TrialData } from "@/lib/use-chat";
 import { useChat } from "@/lib/use-chat";
 import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
 
 const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
-const TRIALS_REGEX = /"trials":\s*\[([\s\S]*?)\]/;
 
 interface ExtractedData {
   age?: number;
   symptoms: string[];
   conditions: Array<{ name: string; probability: number }>;
   status: "gathering" | "extracting" | "searching" | "complete";
-}
-
-interface Trial {
-  nctId: string;
-  title: string;
-  relevanceScore: number;
-  matchReasons: string[];
 }
 
 export default function ChatInterface() {
@@ -35,44 +29,35 @@ export default function ChatInterface() {
     status: "gathering",
   });
 
-  const [trials, setTrials] = useState<Trial[]>([]);
+  const [trials, setTrials] = useState<TrialData[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Parse extraction from AI messages
+  // Parse extraction and trials from AI messages
   useEffect(() => {
     const lastMessage = messages.at(-1);
     if (!lastMessage || lastMessage.role !== "assistant") {
       return;
     }
 
+    // Parse extraction
     const jsonMatch = lastMessage.content.match(JSON_REGEX);
-    if (!jsonMatch) {
-      return;
+    if (jsonMatch) {
+      try {
+        const data = JSON.parse(jsonMatch[1]);
+        setExtraction({
+          age: data.age,
+          symptoms: data.symptoms || [],
+          conditions: data.conditions || [],
+          status: data.readyToSearch ? "complete" : "extracting",
+        });
+      } catch (_e) {
+        // JSON parsing failed, continue
+      }
     }
 
-    try {
-      const data = JSON.parse(jsonMatch[1]);
-      setExtraction({
-        age: data.age,
-        symptoms: data.symptoms || [],
-        conditions: data.conditions || [],
-        status: data.readyToSearch ? "complete" : "extracting",
-      });
-    } catch (_e) {
-      // JSON parsing failed, continue
-    }
-
-    // Parse trials if present
-    const trialsMatch = lastMessage.content.match(TRIALS_REGEX);
-    if (!trialsMatch) {
-      return;
-    }
-
-    try {
-      const trialsData = JSON.parse(`[${trialsMatch[0].split(":")[1]}`);
-      setTrials(trialsData);
-    } catch (_e) {
-      // Trials parsing failed
+    // Get trials from message
+    if (lastMessage.trials) {
+      setTrials(lastMessage.trials);
     }
   }, [messages]);
 
@@ -106,13 +91,18 @@ export default function ChatInterface() {
         <div className="mx-auto w-full max-w-2xl space-y-4 py-4">
           {messages.length === 0 ? (
             <div className="flex h-full items-center justify-center text-center">
-              <div className="space-y-2">
-                <p className="text-lg text-muted-foreground">
-                  Tell me about your symptoms
-                </p>
-                <p className="text-muted-foreground text-sm">
-                  I'll help you find relevant clinical trials
-                </p>
+              <div className="space-y-4">
+                <div className="mx-auto mx-flex flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600 shadow-lg shadow-rose-500/20">
+                  <MessageCircle className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-lg">
+                    Tell me about your symptoms
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    I'll help you find relevant clinical trials
+                  </p>
+                </div>
               </div>
             </div>
           ) : (
@@ -140,7 +130,7 @@ export default function ChatInterface() {
               {/* Trial cards */}
               {trials.length > 0 && (
                 <div className="space-y-3">
-                  <p className="font-semibold text-muted-foreground text-sm uppercase">
+                  <p className="font-semibold text-sm text-stone-700 uppercase dark:text-stone-300">
                     Matching trials
                   </p>
                   {trials.map((trial) => (
@@ -157,10 +147,9 @@ export default function ChatInterface() {
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="rounded-lg bg-muted px-4 py-2">
-                    <p className="animate-pulse text-muted-foreground text-sm">
-                      Thinking...
-                    </p>
+                  <div className="flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-3 dark:bg-stone-800">
+                    <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                    <p className="text-muted-foreground text-sm">Thinking...</p>
                   </div>
                 </div>
               )}
@@ -173,9 +162,9 @@ export default function ChatInterface() {
       {/* Input area - fixed at bottom */}
       <div className="flex flex-col gap-3">
         <form className="mx-auto w-full max-w-2xl" onSubmit={handleSubmit}>
-          <div className="flex gap-2 rounded-lg border border-muted-foreground/20 bg-background p-2">
+          <div className="flex gap-2 rounded-2xl border border-stone-200 bg-white px-2 py-2 shadow-lg shadow-stone-200/50 transition-shadow focus-within:shadow-rose-500/10 focus-within:shadow-xl dark:border-stone-700 dark:bg-stone-900 dark:shadow-stone-900/50">
             <textarea
-              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground/60 disabled:opacity-50"
+              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-stone-400 disabled:opacity-50"
               disabled={isLoading}
               onChange={handleInputChange}
               onKeyDown={(e) => {
@@ -189,11 +178,15 @@ export default function ChatInterface() {
               value={input}
             />
             <button
-              className="flex-shrink-0 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 px-4 py-2 font-semibold text-sm text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
+              className="flex-shrink-0 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 px-4 py-2 font-medium text-sm text-white shadow-lg shadow-rose-500/20 transition-all hover:shadow-rose-500/30 hover:shadow-xl disabled:opacity-50"
               disabled={!input.trim() || isLoading}
               type="submit"
             >
-              {isLoading ? "..." : "Send"}
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
             </button>
           </div>
         </form>

@@ -1,5 +1,7 @@
 "use client";
 
+import { Activity, Baby, Stethoscope } from "lucide-react";
+
 interface Condition {
   name: string;
   probability: number;
@@ -26,37 +28,51 @@ export default function ExtractionPanel({
   };
 
   return (
-    <div className="my-4 rounded-2xl border border-orange-100 bg-orange-50/50 p-4 dark:border-orange-950 dark:bg-orange-950/20">
-      <p className="mb-3 font-semibold text-orange-700 text-xs uppercase dark:text-orange-300">
-        I understood:
+    <div className="fade-in-0 slide-in-from-bottom-4 my-4 animate-in rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-stone-50 p-4 shadow-lg shadow-rose-500/5 duration-500 dark:border-stone-800 dark:from-stone-900 dark:to-stone-950">
+      <p className="mb-4 flex items-center gap-2 font-semibold text-stone-700 text-xs uppercase dark:text-stone-300">
+        <Stethoscope className="h-3.5 w-3.5 text-rose-500" />I understood:
       </p>
 
-      <div className="space-y-2 text-sm">
+      <div className="space-y-3 text-sm">
         {age && (
-          <p>
-            <span className="text-orange-600">✓</span> Age: {age}
-          </p>
+          <div className="flex items-center gap-2">
+            <Baby className="h-4 w-4 text-rose-500" />
+            <p>
+              Age: <span className="font-medium">{age}</span>
+            </p>
+          </div>
         )}
 
         {symptoms.length > 0 && (
-          <p>
-            <span className="text-orange-600">✓</span> Symptoms:{" "}
-            {symptoms.join(", ")}
-          </p>
+          <div className="flex items-start gap-2">
+            <Activity className="mt-0.5 h-4 w-4 text-rose-500" />
+            <div>
+              <p className="font-medium">Symptoms:</p>
+              <p className="text-muted-foreground text-xs">
+                {symptoms.join(", ")}
+              </p>
+            </div>
+          </div>
         )}
 
         {conditions.length > 0 && (
           <div>
-            <p>
-              <span className="text-orange-600">✓</span> Possible conditions:
+            <p className="mb-2 font-medium text-stone-700 dark:text-stone-300">
+              Possible conditions:
             </p>
-            <ul className="ml-6 space-y-1">
+            <div className="space-y-1.5">
               {conditions.map((condition) => (
-                <li key={condition.name}>
-                  {condition.name} ({condition.probability}%)
-                </li>
+                <div
+                  className="flex items-center justify-between rounded-lg bg-white/50 px-3 py-2 dark:bg-stone-900/50"
+                  key={condition.name}
+                >
+                  <span className="text-xs">{condition.name}</span>
+                  <span className="rounded-full bg-rose-500 px-2 py-0.5 font-semibold text-white text-xs">
+                    {condition.probability}%
+                  </span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         )}
 
