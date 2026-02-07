@@ -1,47 +1,44 @@
-# pre-clinic
+# Pre-Clinic
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines Next.js, Self, and more.
+Conversational AI assistant that helps patients discover relevant oncology clinical trials through natural conversation.
 
-## Features
+## What It Does
 
-- **TypeScript** - For type safety and improved developer experience
-- **Next.js** - Full-stack React framework
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Husky** - Git hooks for code quality
-- **Turborepo** - Optimized monorepo build system
+Patient describes symptoms (not diagnosis) → AI asks clarifying questions → AI shows extraction (transparency) → Search trials → Show ranked results with match reasons.
 
-## Getting Started
+## Quickstart
 
-First, install the dependencies:
+1. **Get OpenRouter API key**
+   ```
+   https://openrouter.ai/keys
+   ```
 
-```bash
-npm install
-```
+2. **Add your API key to apps/web/.env**
+   ```
+   OPENROUTER_API_KEY=sk-or-v1-your-key-here
+   ```
 
-Then, run the development server:
+3. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-```bash
-npm run dev
-```
+4. **Run locally**
+   ```bash
+   npm run dev
+   ```
+   Visit http://localhost:3001
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+## Tech Stack
 
-## Git Hooks and Formatting
+- **Framework**: Next.js 16 (App Router)
+- **UI**: React 19 + shadcn/ui
+- **AI**: Claude 3.5 Sonnet via OpenRouter
+- **API**: ClinicalTrials.gov V2 (free, no auth)
+- **Styling**: Tailwind CSS
 
-- Initialize hooks: `npm run prepare`
+## Scripts
 
-## Project Structure
-
-```
-pre-clinic/
-├── apps/
-│   └── web/         # Fullstack application (Next.js)
-├── packages/
-```
-
-## Available Scripts
-
-- `npm run dev`: Start all applications in development mode
-- `npm run build`: Build all applications
-- `npm run check-types`: Check TypeScript types across all apps
+- `npm run dev`: Start development server
+- `npm run build`: Build for production
+- `npm run check-types`: Check TypeScript types

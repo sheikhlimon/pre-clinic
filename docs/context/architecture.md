@@ -1,5 +1,26 @@
 # Architecture
 
+## Tech Stack
+- **Framework**: Next.js 16 (App Router)
+- **UI**: React 19 + shadcn/ui
+- **AI**: Claude 3.5 Sonnet via OpenRouter
+- **Validation**: Zod
+- **Styling**: Tailwind CSS + Bio-Luxe tokens (Forest Green #1A2F23, Sand #F5F2ED)
+
+## Data Flow
+
+```
+User input → Chat API → Claude (OpenRouter)
+                      ↓
+                 Symptom extraction (age, symptoms, conditions)
+                      ↓
+                 ClinicalTrials.gov API (EXPANSION[Concept] search)
+                      ↓
+                 Trial ranking algorithm
+                      ↓
+                 Ranked results to frontend
+```
+
 ## ClinicalTrials.gov V2 API
 
 Base URL: `https://clinicaltrials.gov/api/v2/studies`
@@ -9,21 +30,24 @@ Base URL: `https://clinicaltrials.gov/api/v2/studies`
 
 Example query:
 ```
-?query.term=depression&query.expansion=concept
+?query.term=lung+cancer&query.expansion=concept
 ```
 
 ## Zod Schemas
 
-### SymptomExtraction
+### Extraction (from Claude)
 ```typescript
 {
-  keywords: string[]      // Extracted symptoms/conditions
-  duration?: string        // e.g., "2 weeks", "6 months"
-  severity?: 'mild' | 'moderate' | 'severe'
+  age?: number
+  symptoms: string[]
+  conditions: string[]
+  duration?: string
+  probability: number
+  readyToSearch: boolean
 }
 ```
 
-### TrialResult
+### Trial (from API)
 ```typescript
 {
   nctId: string           // ClinicalTrials.gov identifier
@@ -37,9 +61,11 @@ Example query:
 }
 ```
 
-## Tech Stack
-- **Framework**: Next.js 16 (App Router)
-- **UI**: React 19 + shadcn/ui
-- **AI**: Google Gemini (current) → OpenRouter + Claude (future)
-- **Validation**: Zod
-- **Styling**: Tailwind CSS + Bio-Luxe tokens
+### RankedTrial (output)
+```typescript
+{
+  trial: Trial
+  relevanceScore: number  // 0-100
+  matchReasons: string[]
+}
+```
