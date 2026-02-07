@@ -1,7 +1,7 @@
 "use client";
 
-import { useChat } from "ai/react";
 import { useEffect, useState } from "react";
+import { useChat } from "@/lib/use-chat";
 import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
