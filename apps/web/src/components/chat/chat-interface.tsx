@@ -2,7 +2,6 @@
 
 import { useChat } from "ai/react";
 import { useEffect, useState } from "react";
-import ChatInput from "./chat-input";
 import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
@@ -25,9 +24,10 @@ interface Trial {
 }
 
 export default function ChatInterface() {
-  const { messages, handleSubmit, isLoading } = useChat({
-    api: "/api/chat",
-  });
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: "/api/chat",
+    });
 
   const [extraction, setExtraction] = useState<ExtractedData>({
     symptoms: [],
@@ -97,13 +97,6 @@ export default function ChatInterface() {
     }
   }, [messages]);
 
-  const handleSendMessage = async (message: string) => {
-    const form = new FormData();
-    form.append("message", message);
-
-    await handleSubmit(new SubmitEvent("submit") as unknown as React.FormEvent);
-  };
-
   return (
     <section className="px-4 py-12 md:px-6 md:py-24">
       <div className="container max-w-4xl">
@@ -167,7 +160,32 @@ export default function ChatInterface() {
         </div>
 
         {/* Chat input */}
-        <ChatInput disabled={isLoading} onSend={handleSendMessage} />
+        <form
+          className="flex gap-2 rounded-lg border border-muted-foreground/20 bg-background p-3"
+          onSubmit={handleSubmit}
+        >
+          <textarea
+            className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 disabled:opacity-50"
+            disabled={isLoading}
+            onChange={handleInputChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e as unknown as React.FormEvent);
+              }
+            }}
+            placeholder="Tell me about your symptoms..."
+            rows={1}
+            value={input}
+          />
+          <button
+            className="flex-shrink-0 rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+            disabled={!input.trim() || isLoading}
+            type="submit"
+          >
+            {isLoading ? "..." : "→"}
+          </button>
+        </form>
 
         {/* Footer disclaimer */}
         <p className="mt-6 text-center text-muted-foreground text-xs">

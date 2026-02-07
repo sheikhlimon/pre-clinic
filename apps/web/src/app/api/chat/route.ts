@@ -1,5 +1,3 @@
-import { openai } from "@ai-sdk/openrouter";
-import { streamText } from "ai";
 import type { NextRequest } from "next/server";
 import { searchTrials } from "@/lib/clinical-trials-client";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
@@ -13,49 +11,143 @@ interface Message {
   content: string;
 }
 
+async function handleExtractionAndSearch(fullText: string) {
+  const jsonMatch = fullText.match(JSON_REGEX);
+  if (!jsonMatch) {
+    return;
+  }
+
+  try {
+    const extraction = ExtractionSchema.parse(JSON.parse(jsonMatch[1]));
+
+    if (!extraction.readyToSearch || extraction.conditions.length === 0) {
+      return;
+    }
+
+    const conditionNames = extraction.conditions.map((c) => c.name);
+    const searchResults = await searchTrials({
+      conditions: conditionNames,
+      age: extraction.age,
+    });
+    const rankedTrials = rankTrials(searchResults, extraction);
+
+    // eslint-disable-next-line no-console
+    console.log(`Found ${rankedTrials.length} ranked trials`);
+  } catch (e) {
+    // Parsing error, continue
+    // eslint-disable-next-line no-console
+    console.error("Extraction parsing error:", e);
+  }
+}
+
+function processStreamChunk(
+  chunk: string,
+  encoder: TextEncoder,
+  controller: ReadableStreamDefaultController<Uint8Array>
+): string {
+  let accumulated = "";
+  const lines = chunk.split("\n");
+
+  for (const line of lines) {
+    if (!line.startsWith("data: ")) {
+      continue;
+    }
+
+    const data = line.slice(6);
+    if (data === "[DONE]") {
+      continue;
+    }
+
+    try {
+      const parsed = JSON.parse(data);
+      const content = parsed.choices?.[0]?.delta?.content || "";
+      if (content) {
+        accumulated += content;
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
+        );
+      }
+    } catch {
+      // Skip unparseable lines
+    }
+  }
+
+  return accumulated;
+}
+
 export async function POST(req: NextRequest) {
   const { messages } = (await req.json()) as { messages: Message[] };
 
-  const result = streamText({
-    model: openai("claude-3-5-sonnet-20241022", {
-      apiKey: process.env.OPENROUTER_API_KEY,
-      baseURL: "https://openrouter.ai/api/v1",
-    }),
-    system: SYSTEM_PROMPT,
-    messages,
-    maxTokens: 1000,
-    temperature: 0.7,
-    onFinish: async (event) => {
-      // Check if extraction JSON in response
-      const fullText = event.text;
-      const jsonMatch = fullText.match(JSON_REGEX);
+  if (!process.env.OPENROUTER_API_KEY) {
+    return new Response("OpenRouter API key not configured", { status: 500 });
+  }
 
-      if (jsonMatch) {
-        try {
-          const data = JSON.parse(jsonMatch[1]);
-          const extraction = ExtractionSchema.parse(data);
-
-          if (extraction.readyToSearch && extraction.conditions.length > 0) {
-            const conditionNames = extraction.conditions.map((c) => c.name);
-            const searchResults = await searchTrials({
-              conditions: conditionNames,
-              age: extraction.age,
-            });
-            const rankedTrials = rankTrials(searchResults, extraction);
-
-            // Add trials to response (handled by frontend)
-            // This is just for logging/verification
-            // eslint-disable-next-line no-console
-            console.log(`Found ${rankedTrials.length} ranked trials`);
-          }
-        } catch (e) {
-          // Parsing error, continue
-          // eslint-disable-next-line no-console
-          console.error("Error parsing extraction:", e);
-        }
+  try {
+    // Call OpenRouter API with streaming
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "claude-3.5-sonnet",
+          messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+          max_tokens: 1000,
+          temperature: 0.7,
+          stream: true,
+        }),
       }
-    },
-  });
+    );
 
-  return result.toTextStreamResponse();
+    if (!response.ok) {
+      const error = await response.text();
+      // eslint-disable-next-line no-console
+      console.error("OpenRouter error:", error);
+      return new Response("API error", { status: response.status });
+    }
+
+    // Stream response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        const reader = response.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
+        let fullText = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              await handleExtractionAndSearch(fullText);
+              break;
+            }
+
+            const chunk = new TextDecoder().decode(value);
+            fullText += processStreamChunk(chunk, encoder, controller);
+          }
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Chat API error:", error);
+    return new Response("Internal server error", { status: 500 });
+  }
 }
