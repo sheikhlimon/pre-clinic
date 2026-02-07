@@ -1,3 +1,4 @@
+import ChatInterface from "@/components/chat/chat-interface";
 import Hero from "@/components/landing/hero";
 
 export default function Home() {
@@ -6,14 +7,8 @@ export default function Home() {
       {/* Hero Section */}
       <Hero />
 
-      {/* Chat Interface Placeholder - Phase 0 next step */}
-      <section className="px-4 py-24 md:px-6 md:py-32">
-        <div className="container max-w-4xl">
-          <p className="text-center text-muted-foreground">
-            Chat interface coming next...
-          </p>
-        </div>
-      </section>
+      {/* Chat Interface */}
+      <ChatInterface />
 
       {/* Footer */}
       <footer className="border-t px-4 py-12 md:px-6">
