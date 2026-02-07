@@ -26,21 +26,21 @@ export default function ExtractionPanel({
   };
 
   return (
-    <div className="my-4 rounded-lg border border-muted-foreground/20 bg-muted/30 p-4">
-      <p className="mb-3 font-semibold text-muted-foreground text-xs uppercase">
+    <div className="my-4 rounded-2xl border border-orange-100 bg-orange-50/50 p-4 dark:border-orange-950 dark:bg-orange-950/20">
+      <p className="mb-3 font-semibold text-orange-700 text-xs uppercase dark:text-orange-300">
         I understood:
       </p>
 
       <div className="space-y-2 text-sm">
         {age && (
           <p>
-            <span className="text-primary">✓</span> Age: {age}
+            <span className="text-orange-600">✓</span> Age: {age}
           </p>
         )}
 
         {symptoms.length > 0 && (
           <p>
-            <span className="text-primary">✓</span> Symptoms:{" "}
+            <span className="text-orange-600">✓</span> Symptoms:{" "}
             {symptoms.join(", ")}
           </p>
         )}
@@ -48,7 +48,7 @@ export default function ExtractionPanel({
         {conditions.length > 0 && (
           <div>
             <p>
-              <span className="text-primary">✓</span> Possible conditions:
+              <span className="text-orange-600">✓</span> Possible conditions:
             </p>
             <ul className="ml-6 space-y-1">
               {conditions.map((condition) => (

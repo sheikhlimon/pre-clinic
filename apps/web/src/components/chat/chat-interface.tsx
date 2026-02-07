@@ -189,7 +189,7 @@ export default function ChatInterface() {
               value={input}
             />
             <button
-              className="flex-shrink-0 rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="flex-shrink-0 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 px-4 py-2 font-semibold text-sm text-white shadow-sm transition-all hover:shadow-md disabled:opacity-50"
               disabled={!input.trim() || isLoading}
               type="submit"
             >
