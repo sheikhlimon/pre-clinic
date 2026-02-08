@@ -201,12 +201,12 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 gap-4 overflow-hidden px-4 py-4 md:px-6">
+      <div className="flex flex-1 gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-4 md:px-6">
         {/* LEFT: Extraction Panel - sticky sidebar */}
         {extraction.symptoms.length > 0 &&
           (extraction.status === "extracting" ||
             extraction.status === "complete") && (
-            <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
+            <div className="hidden w-72 flex-shrink-0 overflow-y-auto lg:block xl:w-80">
               <div className="sticky top-0">
                 <ExtractionPanel
                   age={extraction.age}
@@ -226,16 +226,21 @@ export default function ChatInterface() {
           {/* Empty State - icon + prompt */}
           {isEmptyState && (
             <div className="flex flex-1 items-center justify-center">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] shadow-[#E07856]/20 shadow-lg">
-                <MessageCircle className="h-12 w-12 text-white" />
+              <div
+                className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] sm:h-24 sm:w-24"
+                style={{
+                  boxShadow: "var(--shadow-terracotta-md)",
+                }}
+              >
+                <MessageCircle className="h-10 w-10 text-white sm:h-12 sm:w-12" />
               </div>
             </div>
           )}
 
           {/* Messages area - visible when chatting */}
           {!isEmptyState && (
-            <div className="flex flex-1 overflow-y-auto pb-4">
-              <div className="mx-auto w-full max-w-3xl space-y-4 px-4 md:px-0">
+            <div className="flex flex-1 overflow-y-auto pb-3 sm:pb-4">
+              <div className="mx-auto w-full max-w-3xl space-y-3 px-2 sm:space-y-4 sm:px-4 md:px-0">
                 {messages.map((message) => (
                   <ChatMessage
                     content={stripJsonFromContent(message.content)}
@@ -246,9 +251,15 @@ export default function ChatInterface() {
 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
+                    <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-slate-800">
                       <Loader2 className="h-4 w-4 animate-spin text-[#E07856]" />
-                      <p className="text-slate-600 text-sm dark:text-slate-400">
+                      <p
+                        className="text-slate-600 text-sm dark:text-slate-400"
+                        style={{
+                          fontSize: "var(--font-size-sm)",
+                          lineHeight: "var(--line-height-sm)",
+                        }}
+                      >
                         Thinking...
                       </p>
                     </div>
@@ -261,7 +272,7 @@ export default function ChatInterface() {
 
           {/* Input area - fixed at bottom, textarea grows up */}
           <div
-            className="flex flex-shrink-0 flex-col gap-3 border-slate-200/30 border-t px-4 py-4 md:px-0 dark:border-slate-700/30"
+            className="flex flex-shrink-0 flex-col gap-2.5 border-slate-200/30 border-t px-3 py-3 sm:gap-3 sm:px-4 sm:py-4 md:px-0 dark:border-slate-700/30"
             style={{
               borderColor: "rgba(148, 163, 184, 0.2)",
             }}
@@ -294,7 +305,7 @@ export default function ChatInterface() {
                     value={input}
                   />
                   <button
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white transition-all duration-200 hover:shadow-md active:scale-95 disabled:opacity-50"
+                    className="flex h-10 min-h-10 w-10 min-w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white transition-all duration-200 hover:shadow-md active:scale-95 disabled:opacity-50 sm:h-9 sm:w-9"
                     disabled={!input.trim() || isLoading}
                     style={{
                       boxShadow: "var(--shadow-terracotta-sm)",
@@ -312,7 +323,7 @@ export default function ChatInterface() {
             </form>
 
             <p
-              className="text-center text-slate-600 text-xs dark:text-slate-400"
+              className="px-2 text-center text-slate-600 text-xs sm:px-0 dark:text-slate-400"
               style={{
                 fontSize: "var(--font-size-xs)",
                 lineHeight: "var(--line-height-xs)",
@@ -326,9 +337,16 @@ export default function ChatInterface() {
 
         {/* RIGHT: Trial Cards - sticky sidebar */}
         {trials.length > 0 && (
-          <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
-            <div className="space-y-3 px-4">
-              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[#2C3E50] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
+          <div className="hidden w-72 flex-shrink-0 overflow-y-auto lg:block xl:w-80">
+            <div className="space-y-3 px-2 sm:px-4">
+              <p
+                className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-xs uppercase dark:from-slate-950 dark:to-slate-950/80"
+                style={{
+                  color: "var(--color-indigo)",
+                  fontSize: "var(--font-size-xs)",
+                  letterSpacing: "var(--letter-spacing-xs)",
+                }}
+              >
                 Matching trials
               </p>
               {trials.map((trial) => (
@@ -362,8 +380,15 @@ export default function ChatInterface() {
               )}
 
             {trials.length > 0 && (
-              <div className="space-y-3 pt-4">
-                <p className="font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
+              <div className="space-y-3 pt-3 sm:pt-4">
+                <p
+                  className="font-semibold text-xs uppercase"
+                  style={{
+                    color: "var(--color-indigo)",
+                    fontSize: "var(--font-size-xs)",
+                    letterSpacing: "var(--letter-spacing-xs)",
+                  }}
+                >
                   Matching trials
                 </p>
                 {trials.map((trial) => (
