@@ -302,6 +302,8 @@ export default function ChatInterface() {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         handleSubmit(e as unknown as React.FormEvent);
+                        // Refocus after submit
+                        setTimeout(() => textareaRef.current?.focus(), 0);
                       }
                     }}
                     placeholder="Tell me about your symptoms..."
