@@ -12,7 +12,7 @@ export default function Header() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground">
             P
           </div>
-          <span className="font-semibold text-lg">Pre-Clinic</span>
+          <span className="font-semibold text-lg">PreClinic</span>
         </Link>
 
         {/* Dark mode toggle only */}

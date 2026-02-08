@@ -78,7 +78,9 @@ export default function ChatInterface() {
     }
 
     // Parse extraction
-    const jsonMatch = lastMessage.content.match(JSON_REGEX);
+    const jsonMatch = (lastMessage.rawContent || lastMessage.content).match(
+      JSON_REGEX
+    );
     if (jsonMatch) {
       try {
         const data = JSON.parse(jsonMatch[1]);
@@ -165,7 +167,7 @@ export default function ChatInterface() {
                 lineHeight: "var(--line-height-base)",
               }}
             >
-              Pre-Clinic
+              PreClinic
             </span>
           </div>
           <ModeToggle />
@@ -196,7 +198,7 @@ export default function ChatInterface() {
                 lineHeight: "var(--line-height-base)",
               }}
             >
-              AI-powered matching to discover trials tailored to you
+              Discover cancer clinical trials matched to your symptoms
             </p>
           </div>
         )}
