@@ -58,15 +58,23 @@ export default function ChatInterface() {
       });
 
       if (!response.ok) {
-        throw new Error("Search failed");
+        const errorText = await response.text();
+        // eslint-disable-next-line no-console
+        console.error(`Search API error ${response.status}:`, errorText);
+        throw new Error(
+          `Search failed: ${response.statusText} (${response.status})`
+        );
       }
 
       const data = (await response.json()) as { trials: TrialData[] };
       setTrials(data.trials);
       setExtraction((prev) => ({ ...prev, status: "complete" }));
-    } catch (_error) {
+    } catch (error) {
       // eslint-disable-next-line no-console
-      console.error("Search failed:", _error);
+      console.error(
+        "Search error:",
+        error instanceof Error ? error.message : String(error)
+      );
       setExtraction((prev) => ({ ...prev, status: "complete" }));
     }
   };
