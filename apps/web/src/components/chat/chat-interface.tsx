@@ -235,7 +235,7 @@ export default function ChatInterface() {
           )}
 
           {/* Input area - fixed at bottom, textarea grows up */}
-          <div className="flex flex-shrink-0 flex-col gap-3 border-slate-200/30 border-t bg-gradient-to-b from-white/50 to-white px-4 py-4 md:px-0 dark:border-slate-700/30 dark:from-slate-900/50 dark:to-slate-900">
+          <div className="flex flex-shrink-0 flex-col gap-3 border-t border-slate-200/30 px-4 py-4 md:px-0 dark:border-slate-700/30">
             <form className="w-full" onSubmit={handleSubmit}>
               <div className="mx-auto w-full max-w-3xl">
                 <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
@@ -278,8 +278,8 @@ export default function ChatInterface() {
 
         {/* RIGHT: Trial Cards - sticky sidebar */}
         {trials.length > 0 && (
-          <div className="hidden w-96 flex-shrink-0 overflow-y-auto lg:block">
-            <div className="space-y-3">
+          <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
+            <div className="space-y-3 px-4">
               <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[#2C3E50] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
                 Matching trials
               </p>
