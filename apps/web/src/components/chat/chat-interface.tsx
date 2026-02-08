@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Loader2, Search, Send } from "lucide-react";
+import { Activity, Github, Loader2, Search, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import type { TrialData } from "@/lib/use-chat";
@@ -177,6 +177,14 @@ export default function ChatInterface() {
                 Clear chat
               </button>
             )}
+            <a
+              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              href="https://github.com/sheikhlimon/pre-clinic"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <Github className="h-5 w-5" />
+            </a>
             <ModeToggle />
           </div>
         </div>
