@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Activity, Loader2, Search, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import type { TrialData } from "@/lib/use-chat";
@@ -147,12 +147,17 @@ export default function ChatInterface() {
         {/* Navbar Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white shadow-[#E07856]/20 shadow-lg">
-              <Sparkles className="h-5 w-5" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white shadow-lg">
+              <Activity className="h-5 w-5" />
+              <div className="absolute -right-0.5 -bottom-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[#A8D5BA] font-bold text-[#2C3E50] text-xs">
+                <Search className="h-2 w-2" />
+              </div>
             </div>
-            <span className="font-semibold text-[#2C3E50] tracking-tight dark:text-white">
-              PreClinic
-            </span>
+            <div className="flex flex-col">
+              <span className="font-bold text-[#2C3E50] text-lg tracking-tight dark:text-white">
+                PreClinic
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {!isEmptyState && (
