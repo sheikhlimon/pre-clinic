@@ -9,7 +9,7 @@ import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
 
-const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
+const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
 
 // Function to remove JSON blocks from content
 function stripJsonFromContent(content: string): string {
@@ -78,9 +78,7 @@ export default function ChatInterface() {
     }
 
     // Parse extraction
-    const jsonMatch = (lastMessage.rawContent || lastMessage.content).match(
-      JSON_REGEX
-    );
+    const jsonMatch = lastMessage.content.match(JSON_REGEX);
     if (jsonMatch) {
       try {
         const data = JSON.parse(jsonMatch[1]);
