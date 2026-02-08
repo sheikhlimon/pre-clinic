@@ -224,7 +224,7 @@ export default function ChatInterface() {
           )}
 
         {/* CENTER: Chat Interface */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {/* Empty State - icon + prompt */}
           {isEmptyState && (
             <div className="flex flex-1 items-center justify-center">
@@ -242,7 +242,7 @@ export default function ChatInterface() {
           {/* Messages area - visible when chatting */}
           {!isEmptyState && (
             <div
-              className="scrollbar-thin flex flex-1 overflow-y-auto pb-3 sm:pb-4"
+              className="scrollbar-thin flex min-h-0 flex-1 overflow-y-auto"
               ref={messagesScrollRef}
             >
               <div className="mx-auto w-full max-w-3xl space-y-3 px-2 sm:space-y-4 sm:px-4 md:px-0">
@@ -270,6 +270,7 @@ export default function ChatInterface() {
                     </div>
                   </div>
                 )}
+                <div className="h-3 sm:h-4" />
               </div>
             </div>
           )}
