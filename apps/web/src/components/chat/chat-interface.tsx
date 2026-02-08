@@ -113,7 +113,7 @@ export default function ChatInterface() {
       const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
       textareaRef.current.style.height = `${newHeight}px`;
     }
-  }, []);
+  }, [input]);
 
   // Load/save chat history
   useEffect(() => {
@@ -209,8 +209,8 @@ export default function ChatInterface() {
 
           {/* Messages area - visible when chatting */}
           {!isEmptyState && (
-            <div className="flex flex-1 overflow-y-auto">
-              <div className="mx-auto w-full max-w-3xl space-y-4">
+            <div className="flex flex-1 overflow-y-auto pb-4">
+              <div className="mx-auto w-full max-w-3xl space-y-4 px-4 md:px-0">
                 {messages.map((message) => (
                   <ChatMessage
                     content={stripJsonFromContent(message.content)}
@@ -234,9 +234,9 @@ export default function ChatInterface() {
             </div>
           )}
 
-          {/* Input area - fixed size, textarea grows */}
-          <div className="flex flex-shrink-0 flex-col gap-3 pt-4">
-            <form onSubmit={handleSubmit}>
+          {/* Input area - fixed at bottom, textarea grows up */}
+          <div className="flex flex-shrink-0 flex-col gap-3 border-slate-200/30 border-t bg-gradient-to-b from-white/50 to-white px-4 py-4 md:px-0 dark:border-slate-700/30 dark:from-slate-900/50 dark:to-slate-900">
+            <form className="w-full" onSubmit={handleSubmit}>
               <div className="mx-auto w-full max-w-3xl">
                 <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
                   <textarea
