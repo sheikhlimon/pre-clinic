@@ -29,53 +29,153 @@ export default function ExtractionPanel({
     complete: "Search complete",
   };
 
-  return (
-    <div className="my-4 rounded-2xl border border-[#A8D5BA]/30 bg-gradient-to-br from-[#A8D5BA]/10 to-[#E8F4F8]/20 p-4 shadow-[#A8D5BA]/10 shadow-lg transition-all duration-500 hover:shadow-[#A8D5BA]/20 hover:shadow-xl dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
-      <p className="mb-4 flex items-center gap-2 font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
-        <Stethoscope className="h-3.5 w-3.5 text-[#E07856]" />I understood:
-      </p>
+  // Status indicator color
+  const getStatusColor = () => {
+    switch (status) {
+      case "gathering":
+        return "bg-slate-400";
+      case "extracting":
+        return "bg-[#E07856]";
+      case "searching":
+        return "bg-blue-500";
+      case "complete":
+        return "bg-emerald-500";
+      default:
+        return "bg-slate-400";
+    }
+  };
 
-      <div className="space-y-3 text-sm">
+  // Pulsing animation for active states
+  const isPulsing = status === "extracting" || status === "searching";
+
+  return (
+    <div
+      className="my-3 overflow-hidden rounded-xl border border-slate-200/50 bg-gradient-to-br from-slate-50/80 to-white/80 p-4 shadow-sm backdrop-blur-sm transition-all duration-500 hover:shadow-md dark:border-slate-700/50 dark:from-slate-900/80 dark:to-slate-800/80"
+      style={{
+        boxShadow: "var(--shadow-sm)",
+      }}
+    >
+      {/* Header with status indicator */}
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {/* Status indicator with optional pulse */}
+          <div
+            className={`relative flex h-2 w-2 items-center justify-center rounded-full ${getStatusColor()} ${isPulsing ? "animate-pulse-ring" : ""}`}
+          />
+          <p
+            className="font-semibold text-slate-800 text-xs uppercase tracking-wide dark:text-slate-200"
+            style={{
+              fontSize: "var(--font-size-xs)",
+              letterSpacing: "var(--letter-spacing-xs)",
+            }}
+          >
+            I understood
+          </p>
+        </div>
+        <Stethoscope className="h-3.5 w-3.5 text-[#E07856]" />
+      </div>
+
+      <div className="space-y-3">
+        {/* Age display with icon container */}
         {age && (
-          <div className="flex items-center gap-2">
-            <Baby className="h-4 w-4 text-[#E07856]" />
-            <p className="text-[#2C3E50] text-sm dark:text-slate-300">
-              Age: <span className="font-medium">{age}</span>
+          <div className="flex items-center gap-2 rounded-lg bg-white/50 px-3 py-2 dark:bg-slate-800/50">
+            <div
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-[#E07856]/10"
+              style={{
+                boxShadow: "var(--shadow-terracotta-sm)",
+              }}
+            >
+              <Baby className="h-3.5 w-3.5 text-[#E07856]" />
+            </div>
+            <p
+              className="text-slate-800 text-sm dark:text-slate-200"
+              style={{
+                fontSize: "var(--font-size-sm)",
+                lineHeight: "var(--line-height-sm)",
+              }}
+            >
+              Age: <span className="font-semibold">{age}</span>
             </p>
           </div>
         )}
 
+        {/* Symptoms as pill tags */}
         {symptoms.length > 0 && (
-          <div className="flex items-start gap-2">
-            <Activity className="mt-0.5 h-4 w-4 text-[#E07856]" />
-            <div>
-              <p className="font-medium text-[#2C3E50] dark:text-slate-300">
-                Symptoms:
+          <div className="rounded-lg bg-white/50 px-3 py-2.5 dark:bg-slate-800/50">
+            <div className="mb-2 flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5 text-[#E07856]" />
+              <p
+                className="font-semibold text-slate-800 text-xs dark:text-slate-200"
+                style={{
+                  fontSize: "var(--font-size-xs)",
+                }}
+              >
+                Symptoms
               </p>
-              <p className="text-slate-600 text-xs dark:text-slate-400">
-                {symptoms.join(", ")}
-              </p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {symptoms.map((symptom) => (
+                <span
+                  className="inline-flex items-center rounded-full bg-[#A8D5BA]/20 px-2.5 py-1 text-slate-700 text-xs dark:bg-slate-700/50 dark:text-slate-300"
+                  key={symptom}
+                  style={{
+                    fontSize: "var(--font-size-xs)",
+                    lineHeight: "var(--line-height-xs)",
+                  }}
+                >
+                  {symptom}
+                </span>
+              ))}
             </div>
           </div>
         )}
 
+        {/* Condition cards with probability bars */}
         {conditions.length > 0 && (
           <div>
-            <p className="mb-2 font-medium text-[#2C3E50] dark:text-slate-300">
-              Possible conditions:
+            <p
+              className="mb-2 font-semibold text-slate-800 text-xs dark:text-slate-200"
+              style={{
+                fontSize: "var(--font-size-xs)",
+              }}
+            >
+              Possible conditions
             </p>
-            <div className="mb-3 space-y-1.5">
+            <div className="mb-3 space-y-2">
               {conditions.map((condition) => (
                 <div
-                  className="flex items-center justify-between rounded-lg bg-white/50 px-3 py-2 dark:bg-slate-800/50"
+                  className="rounded-lg bg-white/50 px-3 py-2.5 shadow-sm dark:bg-slate-800/50"
                   key={condition.name}
+                  style={{
+                    boxShadow: "var(--shadow-sm)",
+                  }}
                 >
-                  <span className="text-[#2C3E50] text-xs dark:text-slate-300">
-                    {condition.name}
-                  </span>
-                  <span className="rounded-full bg-gradient-to-r from-[#E07856] to-[#FF6B6B] px-2 py-0.5 font-semibold text-white text-xs">
-                    {condition.probability}%
-                  </span>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <span
+                      className="font-medium text-slate-800 text-xs dark:text-slate-200"
+                      style={{
+                        fontSize: "var(--font-size-xs)",
+                      }}
+                    >
+                      {condition.name}
+                    </span>
+                    <span
+                      className="rounded-full bg-gradient-to-r from-[#E07856] to-[#FF6B6B] px-2 py-0.5 font-bold text-white text-xs"
+                      style={{
+                        fontSize: "var(--font-size-xs)",
+                        boxShadow: "var(--shadow-terracotta-sm)",
+                      }}
+                    >
+                      {condition.probability}%
+                    </span>
+                  </div>
+                  {/* Probability bar */}
+                  <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#E07856] to-[#FF6B6B] transition-all duration-500"
+                      style={{ width: `${condition.probability}%` }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -85,16 +185,28 @@ export default function ExtractionPanel({
         {/* Search button when ready */}
         {status === "complete" && onSearchClick && (
           <button
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-white text-xs shadow-[#E07856]/20 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[#E07856]/40 hover:shadow-xl"
+            className="group/btn relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-sm text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
             onClick={onSearchClick}
+            style={{
+              fontSize: "var(--font-size-sm)",
+              boxShadow: "var(--shadow-terracotta-sm)",
+            }}
             type="button"
           >
-            <Search className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
-            <span>Search for matching trials</span>
+            <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover/btn:translate-x-[100%]" />
+            <Search className="relative h-4 w-4 transition-transform group-hover/btn:scale-110" />
+            <span className="relative">Search for matching trials</span>
           </button>
         )}
 
-        <p className="pt-2 text-slate-600 text-xs italic dark:text-slate-400">
+        {/* Status text */}
+        <p
+          className="pt-1.5 text-slate-500 text-xs italic dark:text-slate-400"
+          style={{
+            fontSize: "var(--font-size-xs)",
+            lineHeight: "var(--line-height-xs)",
+          }}
+        >
           {statusText[status]}
         </p>
       </div>
