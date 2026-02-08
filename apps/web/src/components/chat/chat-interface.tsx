@@ -203,7 +203,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-4 md:px-6">
+      <div className="flex min-h-0 flex-1 gap-3 overflow-hidden px-3 py-3 sm:gap-4 sm:px-4 md:px-6">
         {/* LEFT: Extraction Panel - sticky sidebar */}
         {extraction.symptoms.length > 0 &&
           (extraction.status === "extracting" ||

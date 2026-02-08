@@ -26,7 +26,7 @@ export default function ExtractionPanel({
     gathering: "Gathering information...",
     extracting: "Understanding your symptoms...",
     searching: "Searching clinical trials...",
-    complete: "Search complete",
+    complete: "",
   };
 
   // Status indicator color
