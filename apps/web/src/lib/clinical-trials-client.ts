@@ -28,43 +28,62 @@ export async function searchTrials(params: {
 
   const url = `${BASE_URL}?${searchParams}`;
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`ClinicalTrials.gov API error: ${response.statusText}`);
-  }
+  // eslint-disable-next-line no-console
+  console.log("Fetching from:", url);
 
-  const data = (await response.json()) as {
-    studies?: Array<{
-      protocolSection: {
-        identificationModule: { nctId: string; briefTitle: string };
-        statusModule: { overallStatus: string };
-        conditionsModule?: { conditions?: string[] };
-        designModule?: { phases?: string[] };
-        contactsLocationsModule?: { locations?: Array<{ city?: string }> };
-        eligibilityModule?: { eligibilityCriteria?: string };
-      };
-    }>;
-  };
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(10_000), // 10 second timeout
+    });
 
-  // Transform to Trial[]
-  return (data.studies || []).slice(0, maxResults).map((study) => {
-    const proto = study.protocolSection;
-    return {
-      nctId: proto.identificationModule.nctId,
-      title: proto.identificationModule.briefTitle,
-      status: proto.statusModule.overallStatus as
-        | "RECRUITING"
-        | "ENROLLING_BY_INVITATION"
-        | "ACTIVE_NOT_RECRUITING"
-        | "COMPLETED"
-        | "TERMINATED",
-      conditions: proto.conditionsModule?.conditions || [],
-      phase: proto.designModule?.phases?.[0],
-      location:
-        proto.contactsLocationsModule?.locations?.[0]?.city ||
-        "Multiple locations",
-      eligibility: proto.eligibilityModule?.eligibilityCriteria || "",
-      url: `https://clinicaltrials.gov/study/${proto.identificationModule.nctId}`,
+    if (!response.ok) {
+      throw new Error(
+        `ClinicalTrials.gov API error: ${response.statusText} (${response.status})`
+      );
+    }
+
+    const data = (await response.json()) as {
+      studies?: Array<{
+        protocolSection: {
+          identificationModule: { nctId: string; briefTitle: string };
+          statusModule: { overallStatus: string };
+          conditionsModule?: { conditions?: string[] };
+          designModule?: { phases?: string[] };
+          contactsLocationsModule?: { locations?: Array<{ city?: string }> };
+          eligibilityModule?: { eligibilityCriteria?: string };
+        };
+      }>;
     };
-  });
+
+    // eslint-disable-next-line no-console
+    console.log("API response studies count:", data.studies?.length || 0);
+
+    // Transform to Trial[]
+    return (data.studies || []).slice(0, maxResults).map((study) => {
+      const proto = study.protocolSection;
+      return {
+        nctId: proto.identificationModule.nctId,
+        title: proto.identificationModule.briefTitle,
+        status: proto.statusModule.overallStatus as
+          | "RECRUITING"
+          | "ENROLLING_BY_INVITATION"
+          | "ACTIVE_NOT_RECRUITING"
+          | "COMPLETED"
+          | "TERMINATED",
+        conditions: proto.conditionsModule?.conditions || [],
+        phase: proto.designModule?.phases?.[0],
+        location:
+          proto.contactsLocationsModule?.locations?.[0]?.city ||
+          "Multiple locations",
+        eligibility: proto.eligibilityModule?.eligibilityCriteria || "",
+        url: `https://clinicaltrials.gov/study/${proto.identificationModule.nctId}`,
+      };
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Error fetching from ClinicalTrials.gov:", error);
+    throw error;
+  }
 }

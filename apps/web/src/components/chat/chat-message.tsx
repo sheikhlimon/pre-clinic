@@ -1,27 +1,29 @@
 "use client";
 
 interface ChatMessageProps {
-  role: "user" | "assistant";
   content: string;
+  role: "user" | "assistant";
 }
 
-export default function ChatMessage({ role, content }: ChatMessageProps) {
+export default function ChatMessage({ content, role }: ChatMessageProps) {
   const isUser = role === "user";
 
   return (
-    <div
-      className={`fade-in-0 slide-in-from-bottom-2 flex animate-in duration-300 ${
-        isUser ? "justify-end" : "justify-start"
-      }`}
-    >
+    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-md ${
           isUser
-            ? "bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-rose-500/10"
-            : "bg-white text-foreground shadow-stone-200/50 dark:bg-stone-800 dark:shadow-stone-900/50"
+            ? "bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-[#E07856]/20"
+            : "bg-white text-[#2C3E50] shadow-slate-200/50 dark:bg-slate-800 dark:text-slate-100 dark:shadow-slate-900/50"
         }`}
       >
-        <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+        {content ? (
+          <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+        ) : (
+          <p className="text-slate-400 italic dark:text-slate-500">
+            No content to display
+          </p>
+        )}
       </div>
     </div>
   );

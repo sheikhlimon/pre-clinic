@@ -57,9 +57,9 @@ async function handleExtractionAndSearch(
     console.log("Ranked trials:", rankedTrials.length);
 
     // Send trials to frontend
-    const trialsData = rankedTrials.slice(0, 5).map((t) => ({
-      nctId: t.trial.nctId,
-      title: t.trial.title,
+    const trialsData = rankedTrials.map((t) => ({
+      nctId: t.nctId,
+      title: t.title,
       relevanceScore: t.relevanceScore,
       matchReasons: t.matchReasons,
     }));

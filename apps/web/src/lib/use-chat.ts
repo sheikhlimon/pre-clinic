@@ -4,10 +4,18 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  trials?: TrialData[];
 }
 
 export interface UseChatOptions {
   api: string;
+}
+
+export interface TrialData {
+  nctId: string;
+  title: string;
+  relevanceScore: number;
+  matchReasons: string[];
 }
 
 async function fetchChatResponse(api: string, messages: Message[]) {
@@ -26,7 +34,8 @@ async function fetchChatResponse(api: string, messages: Message[]) {
 
 function processStreamChunk(
   chunk: string,
-  onContent: (content: string) => void
+  onContent: (content: string) => void,
+  onTrials?: (trials: TrialData[]) => void
 ) {
   const lines = chunk.split("\n");
 
@@ -39,6 +48,9 @@ function processStreamChunk(
       const data = JSON.parse(line.slice(6));
       if (data.content) {
         onContent(data.content);
+      }
+      if (data.trials && onTrials) {
+        onTrials(data.trials);
       }
     } catch {
       // Skip unparseable lines
@@ -88,30 +100,43 @@ export function useChat({ api }: UseChatOptions) {
           }
 
           const chunk = new TextDecoder().decode(value);
-          processStreamChunk(chunk, (content) => {
-            assistantContent += content;
+          processStreamChunk(
+            chunk,
+            (content) => {
+              assistantContent += content;
 
-            if (messageAdded) {
+              if (messageAdded) {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const lastMsg = updated.at(-1);
+                  if (lastMsg?.id === assistantId) {
+                    lastMsg.content = assistantContent;
+                  }
+                  return updated;
+                });
+              } else {
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: assistantId,
+                    role: "assistant",
+                    content: assistantContent,
+                  },
+                ]);
+                messageAdded = true;
+              }
+            },
+            (trials) => {
               setMessages((prev) => {
                 const updated = [...prev];
                 const lastMsg = updated.at(-1);
                 if (lastMsg?.id === assistantId) {
-                  lastMsg.content = assistantContent;
+                  lastMsg.trials = trials;
                 }
                 return updated;
               });
-            } else {
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: assistantId,
-                  role: "assistant",
-                  content: assistantContent,
-                },
-              ]);
-              messageAdded = true;
             }
-          });
+          );
         }
       } catch (error) {
         // eslint-disable-next-line no-console

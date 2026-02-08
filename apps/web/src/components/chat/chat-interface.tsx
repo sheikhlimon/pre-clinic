@@ -13,7 +13,9 @@ const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
 
 // Function to remove JSON blocks from content
 function stripJsonFromContent(content: string): string {
-  return content.replace(JSON_REGEX, "").trim();
+  const stripped = content.replace(JSON_REGEX, "").trim();
+  // Return original if stripping results in empty content
+  return stripped || content;
 }
 
 interface ExtractedData {
@@ -100,10 +102,10 @@ export default function ChatInterface() {
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    if (!isEmptyState) {
+    if (messages.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [isEmptyState]);
+  }, [messages.length]);
 
   // Auto-grow textarea
   // biome-ignore lint/correctness/useExhaustiveDependencies: input is external state
@@ -177,12 +179,12 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 gap-4 overflow-hidden px-4 py-4 md:px-6">
+      <div className="flex min-h-0 flex-1 gap-4 overflow-hidden px-4 py-4 md:px-6">
         {/* LEFT: Extraction Panel - sticky sidebar */}
         {extraction.symptoms.length > 0 &&
           (extraction.status === "extracting" ||
             extraction.status === "complete") && (
-            <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
+            <div className="hidden w-80 shrink-0 overflow-y-auto lg:block">
               <div className="sticky top-0">
                 <ExtractionPanel
                   age={extraction.age}
@@ -210,8 +212,8 @@ export default function ChatInterface() {
 
           {/* Messages area - visible when chatting */}
           {!isEmptyState && (
-            <div className="flex flex-1 overflow-y-auto">
-              <div className="mx-auto w-full max-w-3xl space-y-4">
+            <div className="flex min-h-0 flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-3xl space-y-4 py-2">
                 {messages.map((message) => (
                   <ChatMessage
                     content={stripJsonFromContent(message.content)}
@@ -236,7 +238,7 @@ export default function ChatInterface() {
           )}
 
           {/* Input area - fixed size, textarea grows */}
-          <div className="flex flex-shrink-0 flex-col gap-3 pt-4">
+          <div className="flex shrink-0 flex-col gap-3 overflow-y-auto px-4 pt-4 md:px-0">
             <form onSubmit={handleSubmit}>
               <div className="mx-auto w-full max-w-3xl">
                 <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
@@ -256,7 +258,7 @@ export default function ChatInterface() {
                     value={input}
                   />
                   <button
-                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl disabled:opacity-50"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl disabled:opacity-50"
                     disabled={!input.trim() || isLoading}
                     type="submit"
                   >
@@ -270,39 +272,9 @@ export default function ChatInterface() {
               </div>
             </form>
 
-            <p className="text-center text-slate-600 text-xs dark:text-slate-400">
-              ⚕️ Always consult with a healthcare provider. This tool is for
-              discovery, not diagnosis.
-            </p>
-          </div>
-        </div>
-
-        {/* RIGHT: Trial Cards - sticky sidebar */}
-        {trials.length > 0 && (
-          <div className="hidden w-96 flex-shrink-0 overflow-y-auto lg:block">
-            <div className="space-y-3">
-              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[#2C3E50] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
-                Matching trials
-              </p>
-              {trials.map((trial) => (
-                <TrialCard
-                  key={trial.nctId}
-                  nctId={trial.nctId}
-                  reasons={trial.matchReasons}
-                  score={trial.relevanceScore}
-                  title={trial.title}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Mobile: Extraction + Trials below chat */}
-        {!isEmptyState && (
-          <div className="w-full lg:hidden">
-            {extraction.symptoms.length > 0 &&
-              (extraction.status === "extracting" ||
-                extraction.status === "complete") && (
+            {/* Mobile: Extraction Panel - below input */}
+            {!isEmptyState && extraction.symptoms.length > 0 && (
+              <div className="mx-auto w-full max-w-3xl lg:hidden">
                 <ExtractionPanel
                   age={extraction.age}
                   conditions={extraction.conditions}
@@ -312,10 +284,12 @@ export default function ChatInterface() {
                   status={trials.length > 0 ? "complete" : extraction.status}
                   symptoms={extraction.symptoms}
                 />
-              )}
+              </div>
+            )}
 
-            {trials.length > 0 && (
-              <div className="space-y-3 pt-4">
+            {/* Mobile: Trial Cards - below extraction */}
+            {!isEmptyState && trials.length > 0 && (
+              <div className="mx-auto w-full max-w-3xl space-y-3 pt-4 lg:hidden">
                 <p className="font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
                   Matching trials
                 </p>
@@ -330,6 +304,31 @@ export default function ChatInterface() {
                 ))}
               </div>
             )}
+
+            <p className="text-center text-slate-600 text-xs dark:text-slate-400">
+              ⚕️ Always consult with a healthcare provider. This tool is for
+              discovery, not diagnosis.
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT: Trial Cards - sticky sidebar (desktop) */}
+        {trials.length > 0 && (
+          <div className="hidden w-96 shrink-0 overflow-y-auto lg:block">
+            <div className="space-y-3">
+              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[#2C3E50] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
+                Matching trials
+              </p>
+              {trials.map((trial) => (
+                <TrialCard
+                  key={trial.nctId}
+                  nctId={trial.nctId}
+                  reasons={trial.matchReasons}
+                  score={trial.relevanceScore}
+                  title={trial.title}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
