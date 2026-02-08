@@ -1,10 +1,10 @@
 "use client";
 
 import { Loader2, MessageCircle, Send, Sparkles } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 import type { TrialData } from "@/lib/use-chat";
 import { useChat } from "@/lib/use-chat";
-import { ModeToggle } from "@/components/mode-toggle";
 import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
@@ -47,80 +47,48 @@ export default function ChatInterface() {
 
   const isEmptyState = messages.length === 0;
 
-  // Manual search for trials
-   const handleSearchTrials = useCallback(
-     async (
-       age: number | undefined,
-       conditions: Array<{ name: string; probability: number }>
-     ) => {
-       setExtraction((prev) => ({ ...prev, status: "searching" }));
+  // Get extraction data and trials from AI messages - backend handles extraction and search internally
+  useEffect(() => {
+    const lastMessage = messages.at(-1);
+    if (!lastMessage || lastMessage.role !== "assistant") {
+      return;
+    }
 
-       try {
-         const response = await fetch("/api/search-trials", {
-           method: "POST",
-           headers: { "Content-Type": "application/json" },
-           body: JSON.stringify({
-             age,
-             conditions: conditions.map((c) => c.name),
-           }),
-         });
+    // Debug: log the entire message object
+    // eslint-disable-next-line no-console
+    console.log(
+      "useEffect triggered. Last message keys:",
+      Object.keys(lastMessage)
+    );
+    // eslint-disable-next-line no-console
+    console.log(
+      "Has trials?",
+      !!lastMessage.trials,
+      "Count:",
+      lastMessage.trials?.length || 0
+    );
 
-         if (!response.ok) {
-           throw new Error("Search failed");
-         }
+    // Update extraction panel when backend sends extraction data
+    if (lastMessage.extractedData) {
+      // eslint-disable-next-line no-console
+      console.log("Frontend received extraction:", lastMessage.extractedData);
+      setExtraction({
+        age: lastMessage.extractedData.age,
+        symptoms: lastMessage.extractedData.symptoms || [],
+        conditions: lastMessage.extractedData.conditions || [],
+        status: lastMessage.extractedData.readyToSearch
+          ? "complete"
+          : "extracting",
+      });
+    }
 
-         const data = (await response.json()) as { trials: TrialData[] };
-         setTrials(data.trials);
-         setExtraction((prev) => ({ ...prev, status: "complete" }));
-       } catch (_error) {
-         // eslint-disable-next-line no-console
-         console.error("Search failed:", _error);
-         setExtraction((prev) => ({ ...prev, status: "complete" }));
-       }
-     },
-     []
-   );
-
-  // Parse extraction and trials from AI messages
-   useEffect(() => {
-     const lastMessage = messages.at(-1);
-     if (!lastMessage || lastMessage.role !== "assistant") {
-       return;
-     }
-
-     // Parse extraction
-     const jsonMatch = lastMessage.content.match(JSON_REGEX);
-     if (jsonMatch) {
-       try {
-         const data = JSON.parse(jsonMatch[1]);
-         setExtraction({
-           age: data.age,
-           symptoms: data.symptoms || [],
-           conditions: data.conditions || [],
-           status: data.readyToSearch ? "complete" : "extracting",
-         });
-       } catch (_e) {
-         // JSON parsing failed, continue
-       }
-     }
-
-     // Get trials from message - update whenever trials appear in any assistant message
-     if (lastMessage.trials && lastMessage.trials.length > 0) {
-       setTrials(lastMessage.trials);
-     }
-
-     // Auto-trigger search when extraction is complete and has conditions
-     if (
-       (lastMessage.extractedData?.symptoms?.length ?? 0) > 0 &&
-       (lastMessage.extractedData?.conditions?.length ?? 0) > 0 &&
-       trials.length === 0
-     ) {
-       handleSearchTrials(
-         lastMessage.extractedData!.age,
-         lastMessage.extractedData!.conditions
-       );
-     }
-     }, [messages, trials.length, handleSearchTrials]);
+    // Update trials when backend sends them
+    if (lastMessage.trials && lastMessage.trials.length > 0) {
+      // eslint-disable-next-line no-console
+      console.log("Frontend received trials:", lastMessage.trials.length);
+      setTrials(lastMessage.trials);
+    }
+  }, [messages]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -137,6 +105,14 @@ export default function ChatInterface() {
       textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [input]);
+
+  // Maintain focus on textarea - always keep it focused for continuous typing
+  useEffect(() => {
+    // Focus textarea whenever not loading (user is typing or waiting to type)
+    if (!isLoading && textareaRef.current && document.hasFocus()) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading]);
 
   // Load/save chat history
   useEffect(() => {
@@ -160,8 +136,9 @@ export default function ChatInterface() {
     <div className="flex h-full w-full flex-col">
       {/* Navbar + Hero Section - collapses when chatting */}
       <div
-        className={`flex-shrink-0 border-b border-slate-200/50 bg-gradient-to-b from-white to-white/80 transition-all duration-300 backdrop-blur-sm dark:border-slate-800/50 dark:from-slate-950 dark:to-slate-950/80 md:px-8 overflow-hidden ${isEmptyState ? "px-6 py-6" : "px-6 py-3"
-          }`}
+        className={`flex-shrink-0 overflow-hidden border-slate-200/50 border-b bg-gradient-to-b from-white to-white/80 backdrop-blur-sm transition-all duration-300 md:px-8 dark:border-slate-800/50 dark:from-slate-950 dark:to-slate-950/80 ${
+          isEmptyState ? "px-6 py-6" : "px-6 py-3"
+        }`}
         style={{
           maxHeight: isEmptyState ? "400px" : "70px",
         }}
@@ -169,10 +146,10 @@ export default function ChatInterface() {
         {/* Navbar Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white shadow-lg shadow-[#E07856]/20">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white shadow-[#E07856]/20 shadow-lg">
               <Sparkles className="h-5 w-5" />
             </div>
-            <span className="font-semibold tracking-tight text-[#2C3E50] dark:text-white">
+            <span className="font-semibold text-[#2C3E50] tracking-tight dark:text-white">
               PreClinic
             </span>
           </div>
@@ -201,7 +178,7 @@ export default function ChatInterface() {
         {/* Hero Headline - visible only when empty */}
         {isEmptyState && (
           <div className="mt-8 text-center opacity-100 transition-opacity duration-300">
-            <h1 className="font-bold tracking-tight text-[#2C3E50] dark:text-white">
+            <h1 className="font-bold text-[#2C3E50] tracking-tight dark:text-white">
               <span className="block text-3xl md:text-4xl">
                 Find Your Perfect
               </span>
@@ -209,7 +186,7 @@ export default function ChatInterface() {
                 Clinical Trial
               </span>
             </h1>
-            <p className="mt-4 text-base text-slate-600 dark:text-slate-400 md:text-lg">
+            <p className="mt-4 text-base text-slate-600 md:text-lg dark:text-slate-400">
               AI-powered matching to discover trials tailored to you
             </p>
           </div>
@@ -217,7 +194,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden gap-4 px-4 py-4 md:px-6">
+      <div className="flex flex-1 gap-4 overflow-hidden px-4 py-4 md:px-6">
         {/* LEFT: Extraction Panel - sticky sidebar */}
         {extraction.symptoms.length > 0 &&
           (extraction.status === "extracting" ||
@@ -225,20 +202,11 @@ export default function ChatInterface() {
             <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
               <div className="sticky top-0">
                 <ExtractionPanel
-                   age={extraction.age}
-                   conditions={extraction.conditions}
-                   onSearchClick={
-                     trials.length === 0
-                       ? () =>
-                           handleSearchTrials(
-                             extraction.age,
-                             extraction.conditions
-                           )
-                       : undefined
-                   }
-                   status={trials.length > 0 ? "complete" : extraction.status}
-                   symptoms={extraction.symptoms}
-                 />
+                  age={extraction.age}
+                  conditions={extraction.conditions}
+                  status={trials.length > 0 ? "complete" : extraction.status}
+                  symptoms={extraction.symptoms}
+                />
               </div>
             </div>
           )}
@@ -248,7 +216,7 @@ export default function ChatInterface() {
           {/* Empty State - icon + prompt */}
           {isEmptyState && (
             <div className="flex flex-1 items-center justify-center">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] shadow-lg shadow-[#E07856]/20">
+              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] shadow-[#E07856]/20 shadow-lg">
                 <MessageCircle className="h-12 w-12 text-white" />
               </div>
             </div>
@@ -270,13 +238,13 @@ export default function ChatInterface() {
                   <div className="flex justify-start">
                     <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
                       <Loader2 className="h-4 w-4 animate-spin text-[#E07856]" />
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                      <p className="text-slate-600 text-sm dark:text-slate-400">
                         Thinking...
                       </p>
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} className="pt-2" />
+                <div className="pt-2" ref={messagesEndRef} />
               </div>
             </div>
           )}
@@ -287,10 +255,16 @@ export default function ChatInterface() {
               <div className="mx-auto w-full max-w-3xl">
                 <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
                   <textarea
-                    ref={textareaRef}
+                    autoFocus
                     className="flex-1 resize-none bg-transparent py-0.5 text-base outline-none placeholder:text-slate-400 disabled:opacity-50"
                     disabled={isLoading}
                     onChange={handleInputChange}
+                    onFocus={(e) => {
+                      e.currentTarget.setSelectionRange(
+                        input.length,
+                        input.length
+                      );
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -298,11 +272,12 @@ export default function ChatInterface() {
                       }
                     }}
                     placeholder="Tell me about your symptoms..."
+                    ref={textareaRef}
                     rows={1}
                     value={input}
                   />
                   <button
-                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-lg shadow-[#E07856]/20 transition-all hover:shadow-[#E07856]/30 hover:shadow-xl disabled:opacity-50"
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl disabled:opacity-50"
                     disabled={!input.trim() || isLoading}
                     type="submit"
                   >
@@ -316,7 +291,7 @@ export default function ChatInterface() {
               </div>
             </form>
 
-            <p className="text-center text-xs text-slate-600 dark:text-slate-400">
+            <p className="text-center text-slate-600 text-xs dark:text-slate-400">
               ⚕️ Always consult with a healthcare provider. This tool is for
               discovery, not diagnosis.
             </p>
@@ -327,7 +302,7 @@ export default function ChatInterface() {
         {trials.length > 0 && (
           <div className="hidden w-96 flex-shrink-0 overflow-y-auto lg:block">
             <div className="space-y-3">
-              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 text-xs font-semibold uppercase text-[#2C3E50] dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
+              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[#2C3E50] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
                 Matching trials
               </p>
               {trials.map((trial) => (
@@ -352,23 +327,14 @@ export default function ChatInterface() {
                 <ExtractionPanel
                   age={extraction.age}
                   conditions={extraction.conditions}
-                  onSearchClick={
-                    trials.length === 0
-                      ? () =>
-                          handleSearchTrials(
-                            extraction.age,
-                            extraction.conditions
-                          )
-                      : undefined
-                  }
                   status={trials.length > 0 ? "complete" : extraction.status}
                   symptoms={extraction.symptoms}
                 />
-                )}
+              )}
 
             {trials.length > 0 && (
               <div className="space-y-3 pt-4">
-                <p className="text-xs font-semibold uppercase text-[#2C3E50] dark:text-slate-300">
+                <p className="font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
                   Matching trials
                 </p>
                 {trials.map((trial) => (

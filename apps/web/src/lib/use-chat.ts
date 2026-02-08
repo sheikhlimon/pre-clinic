@@ -60,9 +60,13 @@ function processStreamChunk(
         onContent(data.content);
       }
       if (data.extractedData && onExtractedData) {
+        // eslint-disable-next-line no-console
+        console.log("processStreamChunk: Found extractedData");
         onExtractedData(data.extractedData);
       }
       if (data.trials && onTrials) {
+        // eslint-disable-next-line no-console
+        console.log("processStreamChunk: Found trials:", data.trials.length);
         onTrials(data.trials);
       }
     } catch {
@@ -73,9 +77,13 @@ function processStreamChunk(
 
 export function useChat({ api }: UseChatOptions) {
   const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === "undefined") return [];
+    if (typeof window === "undefined") {
+      return [];
+    }
     const saved = localStorage.getItem("chat_history");
-    if (!saved) return [];
+    if (!saved) {
+      return [];
+    }
     try {
       return JSON.parse(saved);
     } catch {
@@ -124,6 +132,13 @@ export function useChat({ api }: UseChatOptions) {
         let messageAdded = false;
         let streamingStarted = false;
 
+        // Track message state locally to avoid race conditions
+        let messageState: Message = {
+          id: assistantId,
+          role: "assistant",
+          content: "",
+        };
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) {
@@ -142,68 +157,57 @@ export function useChat({ api }: UseChatOptions) {
                 setIsStreaming(true);
               }
 
+              // Update messageState with new content
+              messageState = { ...messageState, content: assistantContent };
+
+              if (messageAdded) {
+                // Update existing message with new content
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const lastMsg = updated.at(-1);
+                  if (lastMsg?.id === assistantId) {
+                    updated[updated.length - 1] = { ...messageState };
+                  }
+                  return updated;
+                });
+              } else {
+                setMessages((prev) => [...prev, { ...messageState }]);
+                messageAdded = true;
+              }
+            },
+            (extractedData) => {
+              // eslint-disable-next-line no-console
+              console.log("use-chat: Updating extractedData");
+              messageState = { ...messageState, extractedData };
               if (messageAdded) {
                 setMessages((prev) => {
                   const updated = [...prev];
                   const lastMsg = updated.at(-1);
                   if (lastMsg?.id === assistantId) {
-                    lastMsg.content = assistantContent;
+                    updated[updated.length - 1] = { ...messageState };
                   }
                   return updated;
                 });
-              } else {
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    id: assistantId,
-                    role: "assistant",
-                    content: assistantContent,
-                  },
-                ]);
-                messageAdded = true;
               }
             },
-            (extractedData) => {
-              setMessages((prev) => {
-                const updated = [...prev];
-                const lastMsg = updated.at(-1);
-                if (lastMsg?.id === assistantId) {
-                  lastMsg.extractedData = extractedData;
-                } else {
-                  // Create message if it doesn't exist yet
-                  return [
-                    ...updated,
-                    {
-                      id: assistantId,
-                      role: "assistant",
-                      content: "",
-                      extractedData,
-                    },
-                  ];
-                }
-                return updated;
-              });
-            },
             (trials) => {
-              setMessages((prev) => {
-                const updated = [...prev];
-                const lastMsg = updated.at(-1);
-                if (lastMsg?.id === assistantId) {
-                  lastMsg.trials = trials;
-                } else {
-                  // Create message if it doesn't exist yet
-                  return [
-                    ...updated,
-                    {
-                      id: assistantId,
-                      role: "assistant",
-                      content: "",
-                      trials,
-                    },
-                  ];
-                }
-                return updated;
-              });
+              // eslint-disable-next-line no-console
+              console.log("use-chat: Received trials callback:", trials.length);
+              messageState = { ...messageState, trials };
+              if (messageAdded) {
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const lastMsg = updated.at(-1);
+                  if (lastMsg?.id === assistantId) {
+                    // eslint-disable-next-line no-console
+                    console.log(
+                      "use-chat: Attaching trials to existing message"
+                    );
+                    updated[updated.length - 1] = { ...messageState };
+                  }
+                  return updated;
+                });
+              }
             }
           );
         }

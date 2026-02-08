@@ -13,7 +13,6 @@ interface ExtractionPanelProps {
   location?: string;
   conditions: Condition[];
   status: "gathering" | "extracting" | "searching" | "complete";
-  onSearchClick?: () => void;
 }
 
 export default function ExtractionPanel({
@@ -22,7 +21,6 @@ export default function ExtractionPanel({
   location,
   conditions,
   status,
-  onSearchClick,
 }: ExtractionPanelProps) {
   const statusText = {
     gathering: "Gathering information...",
@@ -201,8 +199,6 @@ export default function ExtractionPanel({
             </div>
           </div>
         )}
-
-
 
         {/* Status text */}
         <p

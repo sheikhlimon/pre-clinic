@@ -1,6 +1,8 @@
 import type { NextRequest } from "next/server";
+import { searchTrials } from "@/lib/clinical-trials-client";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { ExtractionSchema } from "@/lib/schemas";
+import { rankTrials } from "@/lib/trial-ranking";
 
 const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/;
 
@@ -25,10 +27,10 @@ async function handleExtractionAndSearch(
   fullText: string,
   encoder: TextEncoder,
   controller: ReadableStreamDefaultController<Uint8Array>
-): Promise<TrialResult[] | null> {
+): Promise<void> {
   const jsonMatch = fullText.match(JSON_REGEX);
   if (!jsonMatch) {
-    return null;
+    return;
   }
 
   try {
@@ -36,26 +38,85 @@ async function handleExtractionAndSearch(
     const parsed = JSON.parse(jsonStr);
     const extraction = ExtractionSchema.parse(parsed);
 
-    // Send extracted data to frontend for extraction panel
-    // Frontend will trigger search via /api/search-trials
+    // eslint-disable-next-line no-console
+    console.log("Extraction parsed:", {
+      readyToSearch: extraction.readyToSearch,
+      conditions: extraction.conditions.length,
+      symptoms: extraction.symptoms.length,
+      age: extraction.age,
+      location: extraction.location,
+    });
+
+    // Send extraction data to frontend for extraction panel display
     controller.enqueue(
       encoder.encode(
         `data: ${JSON.stringify({ extractedData: extraction })}\n\n`
       )
     );
 
-    // Skip search here - let frontend handle it via /api/search-trials
-    // This avoids duplicate searches and timeout issues
-    return null;
+    if (!extraction.readyToSearch) {
+      // eslint-disable-next-line no-console
+      console.log("Not ready to search yet - readyToSearch is false");
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log("CHAT ROUTE: Starting search for trials...");
+
+    // Search for trials internally
+    const searchResults = await searchTrials({
+      conditions: extraction.conditions.map((c) => c.name),
+      age: extraction.age,
+      location: extraction.location,
+    });
+
+    // eslint-disable-next-line no-console
+    console.log("Search results:", searchResults.length);
+
+    if (searchResults.length === 0) {
+      // eslint-disable-next-line no-console
+      console.log("No search results found");
+      return;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log("Ranking trials...");
+
+    // Rank trials
+    const rankedTrials = rankTrials(searchResults, extraction);
+
+    // eslint-disable-next-line no-console
+    console.log("Ranked trials:", rankedTrials.length);
+
+    // Format and send trials to frontend
+    const trials: TrialResult[] = rankedTrials.map((t) => ({
+      nctId: t.nctId,
+      title: t.title,
+      relevanceScore: t.relevanceScore,
+      matchReasons: t.matchReasons,
+    }));
+
+    // eslint-disable-next-line no-console
+    console.log("Sending trials to frontend:", trials.length);
+
+    try {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ trials })}\n\n`)
+      );
+      // eslint-disable-next-line no-console
+      console.log("Trials sent successfully");
+    } catch (sendError) {
+      // eslint-disable-next-line no-console
+      console.error("Error sending trials:", sendError);
+    }
   } catch (e) {
-    // Parsing error, continue
+    // Parsing or search error, continue silently
     // eslint-disable-next-line no-console
     console.error("Extraction/search error:", e);
     if (e instanceof Error) {
       // eslint-disable-next-line no-console
       console.error("Error details:", e.message);
     }
-    return null;
   }
 }
 
@@ -155,9 +216,13 @@ export async function POST(req: NextRequest) {
               )
             );
           }
-        } finally {
-          controller.close();
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error("Stream error:", error);
         }
+
+        // Close controller AFTER all async operations complete
+        controller.close();
       },
     });
 
