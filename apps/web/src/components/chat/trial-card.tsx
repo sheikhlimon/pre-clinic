@@ -119,7 +119,7 @@ export default function TrialCard({
 
         {/* Enhanced CTA Button with micro-interactions */}
         <button
-          className="group/btn relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-sm text-white shadow-sm transition-all duration-300 hover:shadow-md active:scale-[0.98]"
+          className="group/btn focus-ring relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-sm text-white shadow-sm transition-all duration-300 hover:shadow-md active:scale-[0.98]"
           onClick={handleClick}
           style={{
             fontSize: "var(--font-size-sm)",

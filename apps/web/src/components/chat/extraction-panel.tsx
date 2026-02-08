@@ -185,7 +185,7 @@ export default function ExtractionPanel({
         {/* Search button when ready */}
         {status === "complete" && onSearchClick && (
           <button
-            className="group/btn relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-sm text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+            className="group/btn focus-ring relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-sm text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
             onClick={onSearchClick}
             style={{
               fontSize: "var(--font-size-sm)",

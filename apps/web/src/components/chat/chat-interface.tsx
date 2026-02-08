@@ -305,7 +305,7 @@ export default function ChatInterface() {
                     value={input}
                   />
                   <button
-                    className="flex h-10 min-h-10 w-10 min-w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white transition-all duration-200 hover:shadow-md active:scale-95 disabled:opacity-50 sm:h-9 sm:w-9"
+                    className="focus-ring flex h-10 min-h-10 w-10 min-w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white transition-all duration-200 hover:shadow-md active:scale-95 disabled:opacity-50 sm:h-9 sm:w-9"
                     disabled={!input.trim() || isLoading}
                     style={{
                       boxShadow: "var(--shadow-terracotta-sm)",
