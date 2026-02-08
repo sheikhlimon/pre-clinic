@@ -1,10 +1,8 @@
 import type { NextRequest } from "next/server";
-import { searchTrials } from "@/lib/clinical-trials-client";
 import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { ExtractionSchema } from "@/lib/schemas";
-import { rankTrials } from "@/lib/trial-ranking";
 
-const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
+const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/;
 
 // Strip JSON blocks from content for display
 function stripJsonFromContent(content: string): string {
@@ -35,58 +33,28 @@ async function handleExtractionAndSearch(
 
   try {
     const jsonStr = jsonMatch[1];
-    const extraction = ExtractionSchema.parse(JSON.parse(jsonStr));
+    const parsed = JSON.parse(jsonStr);
+    const extraction = ExtractionSchema.parse(parsed);
 
     // Send extracted data to frontend for extraction panel
+    // Frontend will trigger search via /api/search-trials
     controller.enqueue(
       encoder.encode(
         `data: ${JSON.stringify({ extractedData: extraction })}\n\n`
       )
     );
 
-    if (!extraction.readyToSearch || extraction.conditions.length === 0) {
-      // eslint-disable-next-line no-console
-      console.log("Not ready to search or no conditions");
-      return null;
-    }
-
-    const conditionNames = extraction.conditions.map((c) => c.name);
-    // eslint-disable-next-line no-console
-    console.log("Searching for conditions:", conditionNames);
-
-    const searchResults = await searchTrials({
-      conditions: conditionNames,
-      age: extraction.age,
-      location: extraction.location,
-    });
-    // eslint-disable-next-line no-console
-    console.log("Found trials from API:", searchResults.length);
-
-    const rankedTrials = rankTrials(searchResults, extraction);
-    // eslint-disable-next-line no-console
-    console.log("Ranked trials:", rankedTrials.length);
-
-    // Send trials to frontend
-    const trialsData = rankedTrials.map((t) => ({
-      nctId: t.nctId,
-      title: t.title,
-      relevanceScore: t.relevanceScore,
-      matchReasons: t.matchReasons,
-    }));
-
-    controller.enqueue(
-      encoder.encode(
-        `data: ${JSON.stringify({
-          trials: trialsData,
-        })}\n\n`
-      )
-    );
-
-    return trialsData;
+    // Skip search here - let frontend handle it via /api/search-trials
+    // This avoids duplicate searches and timeout issues
+    return null;
   } catch (e) {
     // Parsing error, continue
     // eslint-disable-next-line no-console
     console.error("Extraction/search error:", e);
+    if (e instanceof Error) {
+      // eslint-disable-next-line no-console
+      console.error("Error details:", e.message);
+    }
     return null;
   }
 }
@@ -180,7 +148,7 @@ export async function POST(req: NextRequest) {
 
           // After extracting JSON, stream the non-JSON content to client
           const cleanContent = stripJsonFromContent(fullText);
-          if (cleanContent) {
+          if (cleanContent && cleanContent.trim().length > 0) {
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({ content: cleanContent })}\n\n`

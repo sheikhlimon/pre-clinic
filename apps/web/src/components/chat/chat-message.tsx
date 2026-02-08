@@ -20,6 +20,11 @@ export default function ChatMessage({ content, role }: ChatMessageProps) {
   // Strip JSON blocks from assistant messages for display
   const displayContent = isUser ? content : stripJsonBlocks(content);
 
+  // Don't render empty assistant messages (JSON-only responses)
+  if (!(isUser || displayContent)) {
+    return null;
+  }
+
   return (
     <div
       className={`flex ${isUser ? "justify-end" : "justify-start"} animate-slideUpFade`}

@@ -1,9 +1,9 @@
 # Active Context
 
 ## Current Task
-✅ **Replaced floating icon with clickable starter prompt cards**
+✅ **Fixed API trial rendering, chat padding, and auto-trigger search**
 
-**Status**: All phases implemented, app fully polished and modern (5h elapsed)
+**Status**: Completed - trials now render automatically without button click
 
 **Bugs Fixed**:
 - ✅ isEmptyState initialization error (a1e9390)

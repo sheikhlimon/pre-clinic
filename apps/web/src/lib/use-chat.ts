@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface ExtractedData {
   age?: number;
@@ -72,10 +72,26 @@ function processStreamChunk(
 }
 
 export function useChat({ api }: UseChatOptions) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(() => {
+    if (typeof window === "undefined") return [];
+    const saved = localStorage.getItem("chat_history");
+    if (!saved) return [];
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return [];
+    }
+  });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+
+  // Persist messages to localStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("chat_history", JSON.stringify(messages));
+    }
+  }, [messages]);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -153,6 +169,17 @@ export function useChat({ api }: UseChatOptions) {
                 const lastMsg = updated.at(-1);
                 if (lastMsg?.id === assistantId) {
                   lastMsg.extractedData = extractedData;
+                } else {
+                  // Create message if it doesn't exist yet
+                  return [
+                    ...updated,
+                    {
+                      id: assistantId,
+                      role: "assistant",
+                      content: "",
+                      extractedData,
+                    },
+                  ];
                 }
                 return updated;
               });
@@ -163,6 +190,17 @@ export function useChat({ api }: UseChatOptions) {
                 const lastMsg = updated.at(-1);
                 if (lastMsg?.id === assistantId) {
                   lastMsg.trials = trials;
+                } else {
+                  // Create message if it doesn't exist yet
+                  return [
+                    ...updated,
+                    {
+                      id: assistantId,
+                      role: "assistant",
+                      content: "",
+                      trials,
+                    },
+                  ];
                 }
                 return updated;
               });
@@ -187,6 +225,11 @@ export function useChat({ api }: UseChatOptions) {
     []
   );
 
+  const clearChat = useCallback(() => {
+    setMessages([]);
+    localStorage.removeItem("chat_history");
+  }, []);
+
   return {
     messages,
     input,
@@ -195,5 +238,6 @@ export function useChat({ api }: UseChatOptions) {
     handleSubmit,
     isLoading,
     isStreaming,
+    clearChat,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Baby, MapPin, Search, Stethoscope } from "lucide-react";
+import { Activity, Baby, MapPin, Stethoscope } from "lucide-react";
 
 interface Condition {
   name: string;
@@ -27,7 +27,7 @@ export default function ExtractionPanel({
   const statusText = {
     gathering: "Gathering information...",
     extracting: "Understanding your symptoms...",
-    searching: "Searching clinical trials...",
+    searching: "", // Don't show text - trials appear immediately after
     complete: "",
   };
 
@@ -202,22 +202,7 @@ export default function ExtractionPanel({
           </div>
         )}
 
-        {/* Search button when ready */}
-        {status === "complete" && onSearchClick && (
-          <button
-            className="group/btn focus-ring relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-sm text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
-            onClick={onSearchClick}
-            style={{
-              fontSize: "var(--font-size-sm)",
-              boxShadow: "var(--shadow-terracotta-sm)",
-            }}
-            type="button"
-          >
-            <div className="absolute inset-0 translate-x-[-100%] bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover/btn:translate-x-[100%]" />
-            <Search className="relative h-4 w-4 transition-transform group-hover/btn:scale-110" />
-            <span className="relative">Search for matching trials</span>
-          </button>
-        )}
+
 
         {/* Status text */}
         <p

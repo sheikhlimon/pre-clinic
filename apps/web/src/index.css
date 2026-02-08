@@ -221,7 +221,7 @@
   @keyframes slideUpFade {
     from {
       opacity: 0;
-      transform: translateY(16px);
+      transform: translateY(8px);
     }
 
     to {
@@ -259,7 +259,7 @@
   }
 
   .animate-slideUpFade {
-    animation: slideUpFade 200ms ease-out;
+    animation: slideUpFade 150ms ease-out;
   }
 
   .animate-pulse-ring {
