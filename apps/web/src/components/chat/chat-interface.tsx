@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, MessageCircle, Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import type { TrialData } from "@/lib/use-chat";
@@ -27,6 +27,7 @@ export default function ChatInterface() {
   const {
     messages,
     input,
+    setInput,
     handleInputChange,
     handleSubmit,
     isLoading,
@@ -180,14 +181,15 @@ export default function ChatInterface() {
           <div className="mt-8 text-center opacity-100 transition-opacity duration-300">
             <h1 className="font-bold text-[#2C3E50] tracking-tight dark:text-white">
               <span className="block text-3xl md:text-4xl">
-                Find Your Perfect
+                Find Cancer Clinical
               </span>
               <span className="mt-2 block bg-gradient-to-r from-[#E07856] to-[#FF6B6B] bg-clip-text text-4xl text-transparent md:text-5xl">
-                Clinical Trial
+                Trials That Match You
               </span>
             </h1>
             <p className="mt-4 text-base text-slate-600 md:text-lg dark:text-slate-400">
-              AI-powered matching to discover trials tailored to you
+              AI-powered oncology trial matching based on your symptoms and
+              diagnosis
             </p>
           </div>
         )}
@@ -213,11 +215,61 @@ export default function ChatInterface() {
 
         {/* CENTER: Chat Interface */}
         <div className="flex flex-1 flex-col overflow-hidden">
-          {/* Empty State - icon + prompt */}
+          {/* Empty State - clickable prompt cards */}
           {isEmptyState && (
-            <div className="flex flex-1 items-center justify-center">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] shadow-[#E07856]/20 shadow-lg">
-                <MessageCircle className="h-12 w-12 text-white" />
+            <div className="flex flex-1 items-center justify-center px-4">
+              <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+                {/* Prompt Card 1 - Symptom based */}
+                <button
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all hover:border-[#E07856]/30 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:border-[#E07856]/30"
+                  onClick={() => {
+                    const prompt =
+                      "I'm experiencing symptoms and want to find clinical trials that might help";
+                    setInput(prompt);
+                    // Directly set textarea value for immediate submission
+                    if (textareaRef.current) {
+                      textareaRef.current.value = prompt;
+                    }
+                    // Submit the form with a small delay to ensure value is set
+                    setTimeout(() => {
+                      const form = textareaRef.current?.closest("form");
+                      if (form) {
+                        form.requestSubmit();
+                      }
+                    }, 10);
+                  }}
+                  type="button"
+                >
+                  <p className="text-base text-slate-700 dark:text-slate-200">
+                    I have symptoms and want to find relevant clinical trials
+                  </p>
+                </button>
+
+                {/* Prompt Card 2 - Condition based */}
+                <button
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all hover:border-[#E07856]/30 hover:shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:hover:border-[#E07856]/30"
+                  onClick={() => {
+                    const prompt =
+                      "I've been diagnosed with cancer and looking for treatment options";
+                    setInput(prompt);
+                    // Directly set textarea value for immediate submission
+                    if (textareaRef.current) {
+                      textareaRef.current.value = prompt;
+                    }
+                    // Submit the form with a small delay to ensure value is set
+                    setTimeout(() => {
+                      const form = textareaRef.current?.closest("form");
+                      if (form) {
+                        form.requestSubmit();
+                      }
+                    }, 10);
+                  }}
+                  type="button"
+                >
+                  <p className="text-base text-slate-700 dark:text-slate-200">
+                    I have a diagnosis and looking for clinical trial options
+                  </p>
+                </button>
               </div>
             </div>
           )}
