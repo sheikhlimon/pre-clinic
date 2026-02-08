@@ -35,9 +35,12 @@ export default function ChatInterface() {
     status: "gathering",
   });
 
+  const [_showExtraction, _setShowExtraction] = useState(false);
   const [trials, setTrials] = useState<TrialData[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isEmptyState = messages.length === 0;
 
   // Manual search for trials
   const handleSearchTrials = async () => {
@@ -129,8 +132,6 @@ export default function ChatInterface() {
       localStorage.setItem("chat_history", JSON.stringify(messages));
     }
   }, [messages]);
-
-  const isEmptyState = messages.length === 0;
 
   return (
     <div className="flex h-full w-full flex-col">

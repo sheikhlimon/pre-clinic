@@ -120,9 +120,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply font-sans bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -133,12 +135,41 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
   }
 
+  @keyframes slideUpFade {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .animate-fadeIn {
     animation: fadeIn 250ms ease-out;
+  }
+
+  .animate-slideUpFade {
+    animation: slideUpFade 200ms ease-out;
+  }
+
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
   }
 }
