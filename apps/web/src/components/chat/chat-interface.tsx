@@ -104,14 +104,13 @@ export default function ChatInterface() {
   }, [messages]);
 
   // Auto-grow textarea
-  // biome-ignore lint/correctness/useExhaustiveDependencies: input dependency is intentional for height recalc
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
       textareaRef.current.style.height = `${newHeight}px`;
     }
-  }, [input]);
+  }, []);
 
   // Load/save chat history
   useEffect(() => {
