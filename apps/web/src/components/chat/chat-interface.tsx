@@ -113,7 +113,7 @@ export default function ChatInterface() {
       const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
       textareaRef.current.style.height = `${newHeight}px`;
     }
-  }, [input]);
+  }, []);
 
   // Load/save chat history
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function ChatInterface() {
     <div className="flex h-full w-full flex-col">
       {/* Navbar + Hero Section - collapses when chatting */}
       <div
-        className={`flex-shrink-0 overflow-hidden border-slate-200/50 border-b bg-gradient-to-b from-white to-white/80 backdrop-blur-sm transition-all duration-300 md:px-8 dark:border-slate-800/50 dark:from-slate-950 dark:to-slate-950/80 ${
+        className={`flex-shrink-0 overflow-hidden border-slate-200/50 border-b bg-gradient-to-b from-white to-white/80 backdrop-blur-sm transition-all duration-500 ease-in-out md:px-8 dark:border-slate-800/50 dark:from-slate-950 dark:to-slate-950/80 ${
           isEmptyState ? "px-6 py-6" : "px-6 py-3"
         }`}
         style={{
@@ -147,10 +147,22 @@ export default function ChatInterface() {
         {/* Navbar Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white shadow-[#E07856]/20 shadow-lg">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white transition-transform duration-300 hover:scale-105"
+              style={{
+                boxShadow: "var(--shadow-terracotta-md)",
+              }}
+            >
               <Sparkles className="h-5 w-5" />
             </div>
-            <span className="font-semibold text-[#2C3E50] tracking-tight dark:text-white">
+            <span
+              className="font-semibold tracking-tight dark:text-white"
+              style={{
+                color: "var(--color-indigo)",
+                fontSize: "var(--font-size-base)",
+                lineHeight: "var(--line-height-base)",
+              }}
+            >
               Pre-Clinic
             </span>
           </div>
@@ -159,8 +171,15 @@ export default function ChatInterface() {
 
         {/* Hero Headline - visible only when empty */}
         {isEmptyState && (
-          <div className="mt-8 text-center opacity-100 transition-opacity duration-300">
-            <h1 className="font-bold text-[#2C3E50] tracking-tight dark:text-white">
+          <div className="mt-8 text-center opacity-100 transition-opacity duration-500">
+            <h1
+              className="font-bold tracking-tight dark:text-white"
+              style={{
+                color: "var(--color-indigo)",
+                fontSize: "var(--font-size-xl)",
+                lineHeight: "var(--line-height-xl)",
+              }}
+            >
               <span className="block text-3xl md:text-4xl">
                 Find Your Perfect
               </span>
@@ -168,7 +187,13 @@ export default function ChatInterface() {
                 Clinical Trial
               </span>
             </h1>
-            <p className="mt-4 text-base text-slate-600 md:text-lg dark:text-slate-400">
+            <p
+              className="mt-4 text-base text-slate-600 md:text-lg dark:text-slate-400"
+              style={{
+                fontSize: "var(--font-size-base)",
+                lineHeight: "var(--line-height-base)",
+              }}
+            >
               AI-powered matching to discover trials tailored to you
             </p>
           </div>
@@ -235,10 +260,20 @@ export default function ChatInterface() {
           )}
 
           {/* Input area - fixed at bottom, textarea grows up */}
-          <div className="flex flex-shrink-0 flex-col gap-3 border-t border-slate-200/30 px-4 py-4 md:px-0 dark:border-slate-700/30">
+          <div
+            className="flex flex-shrink-0 flex-col gap-3 border-slate-200/30 border-t px-4 py-4 md:px-0 dark:border-slate-700/30"
+            style={{
+              borderColor: "rgba(148, 163, 184, 0.2)",
+            }}
+          >
             <form className="w-full" onSubmit={handleSubmit}>
               <div className="mx-auto w-full max-w-3xl">
-                <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
+                <div
+                  className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm transition-all duration-200 focus-within:border-[#E07856]/50 focus-within:ring-2 focus-within:ring-[#E07856]/10 dark:border-slate-700 dark:bg-slate-900"
+                  style={{
+                    boxShadow: "var(--shadow-sm)",
+                  }}
+                >
                   <textarea
                     className="flex-1 resize-none bg-transparent py-1 text-base outline-none placeholder:text-slate-400 disabled:opacity-50"
                     disabled={isLoading}
@@ -252,24 +287,37 @@ export default function ChatInterface() {
                     placeholder="Tell me about your symptoms..."
                     ref={textareaRef}
                     rows={1}
+                    style={{
+                      fontSize: "var(--font-size-base)",
+                      lineHeight: "var(--line-height-base)",
+                    }}
                     value={input}
                   />
                   <button
-                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl disabled:opacity-50"
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white transition-all duration-200 hover:shadow-md active:scale-95 disabled:opacity-50"
                     disabled={!input.trim() || isLoading}
+                    style={{
+                      boxShadow: "var(--shadow-terracotta-sm)",
+                    }}
                     type="submit"
                   >
                     {isLoading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Send className="h-5 w-5" />
+                      <Send className="h-4 w-4" />
                     )}
                   </button>
                 </div>
               </div>
             </form>
 
-            <p className="text-center text-slate-600 text-xs dark:text-slate-400">
+            <p
+              className="text-center text-slate-600 text-xs dark:text-slate-400"
+              style={{
+                fontSize: "var(--font-size-xs)",
+                lineHeight: "var(--line-height-xs)",
+              }}
+            >
               ⚕️ Always consult with a healthcare provider. This tool is for
               discovery, not diagnosis.
             </p>
