@@ -37,7 +37,7 @@ export default function ChatInterface() {
 
   const [_showExtraction, _setShowExtraction] = useState(false);
   const [trials, setTrials] = useState<TrialData[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isEmptyState = messages.length === 0;
@@ -101,19 +101,21 @@ export default function ChatInterface() {
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    if (messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0 && messagesScrollRef.current) {
+      messagesScrollRef.current.scrollTop =
+        messagesScrollRef.current.scrollHeight;
     }
   }, [messages]);
 
   // Auto-grow textarea
+  // biome-ignore lint/correctness/useExhaustiveDependencies: input is needed to trigger textarea height recalculation
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
       textareaRef.current.style.height = `${newHeight}px`;
     }
-  }, []);
+  }, [input]);
 
   // Load/save chat history
   useEffect(() => {
@@ -206,7 +208,7 @@ export default function ChatInterface() {
         {extraction.symptoms.length > 0 &&
           (extraction.status === "extracting" ||
             extraction.status === "complete") && (
-            <div className="hidden w-72 flex-shrink-0 overflow-y-auto lg:block xl:w-80">
+            <div className="scrollbar-thin hidden w-72 flex-shrink-0 overflow-y-auto lg:block xl:w-80">
               <div className="sticky top-0">
                 <ExtractionPanel
                   age={extraction.age}
@@ -239,7 +241,10 @@ export default function ChatInterface() {
 
           {/* Messages area - visible when chatting */}
           {!isEmptyState && (
-            <div className="flex flex-1 overflow-y-auto pb-3 sm:pb-4">
+            <div
+              className="scrollbar-thin flex flex-1 overflow-y-auto pb-3 sm:pb-4"
+              ref={messagesScrollRef}
+            >
               <div className="mx-auto w-full max-w-3xl space-y-3 px-2 sm:space-y-4 sm:px-4 md:px-0">
                 {messages.map((message) => (
                   <ChatMessage
@@ -265,7 +270,6 @@ export default function ChatInterface() {
                     </div>
                   </div>
                 )}
-                <div ref={messagesEndRef} />
               </div>
             </div>
           )}
@@ -337,7 +341,7 @@ export default function ChatInterface() {
 
         {/* RIGHT: Trial Cards - sticky sidebar */}
         {trials.length > 0 && (
-          <div className="hidden w-72 flex-shrink-0 overflow-y-auto lg:block xl:w-80">
+          <div className="scrollbar-thin hidden w-72 flex-shrink-0 overflow-y-auto lg:block xl:w-80">
             <div className="space-y-3 px-2 sm:px-4">
               <p
                 className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-xs uppercase dark:from-slate-950 dark:to-slate-950/80"
