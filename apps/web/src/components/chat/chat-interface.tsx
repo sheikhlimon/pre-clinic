@@ -258,22 +258,6 @@ export default function ChatInterface() {
                   />
                 ))}
 
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-slate-800">
-                      <Loader2 className="h-4 w-4 animate-spin text-[#E07856]" />
-                      <p
-                        className="text-slate-600 text-sm dark:text-slate-400"
-                        style={{
-                          fontSize: "var(--font-size-sm)",
-                          lineHeight: "var(--line-height-sm)",
-                        }}
-                      >
-                        Thinking...
-                      </p>
-                    </div>
-                  </div>
-                )}
                 <div className="h-3 sm:h-4" />
               </div>
             </div>
@@ -289,13 +273,13 @@ export default function ChatInterface() {
             <form className="w-full" onSubmit={handleSubmit}>
               <div className="mx-auto w-full max-w-3xl">
                 <div
-                  className="flex items-end gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm transition-all duration-200 focus-within:border-[#E07856]/50 focus-within:ring-2 focus-within:ring-[#E07856]/10 dark:border-slate-700 dark:bg-slate-900"
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm transition-all duration-200 focus-within:border-[#E07856]/50 focus-within:ring-2 focus-within:ring-[#E07856]/10 dark:border-slate-700 dark:bg-slate-900"
                   style={{
                     boxShadow: "var(--shadow-sm)",
                   }}
                 >
                   <textarea
-                    className="flex-1 resize-none bg-transparent py-1 text-base outline-none placeholder:text-slate-400 disabled:opacity-50"
+                    className="flex-1 resize-none bg-transparent py-0.5 text-base outline-none placeholder:text-slate-400 disabled:opacity-50"
                     disabled={isLoading}
                     onChange={handleInputChange}
                     onKeyDown={(e) => {
