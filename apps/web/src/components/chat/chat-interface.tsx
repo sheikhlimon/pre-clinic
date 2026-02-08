@@ -1,7 +1,8 @@
 "use client";
 
-import { Loader2, MessageCircle, Send } from "lucide-react";
+import { Loader2, MessageCircle, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
 import type { TrialData } from "@/lib/use-chat";
 import { useChat } from "@/lib/use-chat";
 import ChatMessage from "./chat-message";
@@ -9,6 +10,11 @@ import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
 
 const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
+
+// Function to remove JSON blocks from content
+function stripJsonFromContent(content: string): string {
+  return content.replace(JSON_REGEX, "").trim();
+}
 
 interface ExtractedData {
   age?: number;
@@ -31,6 +37,9 @@ export default function ChatInterface() {
 
   const [trials, setTrials] = useState<TrialData[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isEmptyState = messages.length === 0;
 
   // Manual search for trials
   const handleSearchTrials = async () => {
@@ -91,8 +100,21 @@ export default function ChatInterface() {
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!isEmptyState) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isEmptyState]);
+
+  // Auto-grow textarea
+  // biome-ignore lint/correctness/useExhaustiveDependencies: input is external state
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      const newHeight = Math.min(textarea.scrollHeight, 120);
+      textarea.style.height = `${newHeight}px`;
+    }
+  }, [input]);
 
   // Load/save chat history
   useEffect(() => {
@@ -113,119 +135,203 @@ export default function ChatInterface() {
   }, [messages]);
 
   return (
-    <div className="flex h-full w-full flex-col px-4 pb-4 md:px-6">
-      {/* Chat messages area - fills available space */}
-      <div className="flex flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl space-y-4 py-4">
-          {messages.length === 0 ? (
-            <div className="flex h-full items-center justify-center text-center">
-              <div className="space-y-4">
-                <div className="mx-auto mx-flex flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-400 to-rose-600 shadow-lg shadow-rose-500/20">
-                  <MessageCircle className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <p className="font-semibold text-lg">
-                    Tell me about your symptoms
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    I'll help you find relevant clinical trials
-                  </p>
-                </div>
-              </div>
+    <div className="flex h-full w-full flex-col">
+      {/* Navbar + Hero Section - collapses when chatting */}
+      <div
+        className={`flex-shrink-0 overflow-hidden border-slate-200/50 border-b bg-gradient-to-b from-white to-white/80 backdrop-blur-sm transition-all duration-300 md:px-8 dark:border-slate-800/50 dark:from-slate-950 dark:to-slate-950/80 ${
+          isEmptyState ? "px-6 py-6" : "px-6 py-3"
+        }`}
+        style={{
+          maxHeight: isEmptyState ? "400px" : "70px",
+        }}
+      >
+        {/* Navbar Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] font-bold text-white shadow-[#E07856]/20 shadow-lg">
+              <Sparkles className="h-5 w-5" />
             </div>
-          ) : (
-            <>
-              {messages.map((message) => (
-                <ChatMessage
-                  content={message.content}
-                  key={message.id}
-                  role={message.role}
-                />
-              ))}
-
-              {/* Extraction panel when ready */}
-              {extraction.symptoms.length > 0 &&
-                (extraction.status === "extracting" ||
-                  extraction.status === "complete") && (
-                  <ExtractionPanel
-                    age={extraction.age}
-                    conditions={extraction.conditions}
-                    onSearchClick={
-                      trials.length === 0 ? handleSearchTrials : undefined
-                    }
-                    status={trials.length > 0 ? "complete" : extraction.status}
-                    symptoms={extraction.symptoms}
-                  />
-                )}
-
-              {/* Trial cards */}
-              {trials.length > 0 && (
-                <div className="space-y-3">
-                  <p className="font-semibold text-sm text-stone-700 uppercase dark:text-stone-300">
-                    Matching trials
-                  </p>
-                  {trials.map((trial) => (
-                    <TrialCard
-                      key={trial.nctId}
-                      nctId={trial.nctId}
-                      reasons={trial.matchReasons}
-                      score={trial.relevanceScore}
-                      title={trial.title}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="flex items-center gap-2 rounded-2xl bg-stone-100 px-4 py-3 dark:bg-stone-800">
-                    <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
-                    <p className="text-muted-foreground text-sm">Thinking...</p>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </>
-          )}
+            <span className="font-semibold text-[#2C3E50] tracking-tight dark:text-white">
+              Pre-Clinic
+            </span>
+          </div>
+          <ModeToggle />
         </div>
+
+        {/* Hero Headline - visible only when empty */}
+        {isEmptyState && (
+          <div className="mt-8 text-center opacity-100 transition-opacity duration-300">
+            <h1 className="font-bold text-[#2C3E50] tracking-tight dark:text-white">
+              <span className="block text-3xl md:text-4xl">
+                Find Your Perfect
+              </span>
+              <span className="mt-2 block bg-gradient-to-r from-[#E07856] to-[#FF6B6B] bg-clip-text text-4xl text-transparent md:text-5xl">
+                Clinical Trial
+              </span>
+            </h1>
+            <p className="mt-4 text-base text-slate-600 md:text-lg dark:text-slate-400">
+              AI-powered matching to discover trials tailored to you
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Input area - fixed at bottom */}
-      <div className="flex flex-col gap-3">
-        <form className="mx-auto w-full max-w-2xl" onSubmit={handleSubmit}>
-          <div className="flex gap-2 rounded-2xl border border-stone-200 bg-white px-2 py-2 shadow-lg shadow-stone-200/50 transition-shadow focus-within:shadow-rose-500/10 focus-within:shadow-xl dark:border-stone-700 dark:bg-stone-900 dark:shadow-stone-900/50">
-            <textarea
-              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-stone-400 disabled:opacity-50"
-              disabled={isLoading}
-              onChange={handleInputChange}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e as unknown as React.FormEvent);
-                }
-              }}
-              placeholder="Tell me about your symptoms..."
-              rows={1}
-              value={input}
-            />
-            <button
-              className="flex-shrink-0 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 px-4 py-2 font-medium text-sm text-white shadow-lg shadow-rose-500/20 transition-all hover:shadow-rose-500/30 hover:shadow-xl disabled:opacity-50"
-              disabled={!input.trim() || isLoading}
-              type="submit"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </button>
-          </div>
-        </form>
+      {/* Main Content Area */}
+      <div className="flex flex-1 gap-4 overflow-hidden px-4 py-4 md:px-6">
+        {/* LEFT: Extraction Panel - sticky sidebar */}
+        {extraction.symptoms.length > 0 &&
+          (extraction.status === "extracting" ||
+            extraction.status === "complete") && (
+            <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
+              <div className="sticky top-0">
+                <ExtractionPanel
+                  age={extraction.age}
+                  conditions={extraction.conditions}
+                  onSearchClick={
+                    trials.length === 0 ? handleSearchTrials : undefined
+                  }
+                  status={trials.length > 0 ? "complete" : extraction.status}
+                  symptoms={extraction.symptoms}
+                />
+              </div>
+            </div>
+          )}
 
-        <p className="text-center text-muted-foreground text-xs">
-          ⚕️ Always consult with a healthcare provider. This tool is for
-          discovery, not diagnosis.
-        </p>
+        {/* CENTER: Chat Interface */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Empty State - icon + prompt */}
+          {isEmptyState && (
+            <div className="flex flex-1 items-center justify-center">
+              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] shadow-[#E07856]/20 shadow-lg">
+                <MessageCircle className="h-12 w-12 text-white" />
+              </div>
+            </div>
+          )}
+
+          {/* Messages area - visible when chatting */}
+          {!isEmptyState && (
+            <div className="flex flex-1 overflow-y-auto">
+              <div className="mx-auto w-full max-w-3xl space-y-4">
+                {messages.map((message) => (
+                  <ChatMessage
+                    content={stripJsonFromContent(message.content)}
+                    key={message.id}
+                    role={message.role}
+                  />
+                ))}
+
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#E07856]" />
+                      <p className="text-slate-600 text-sm dark:text-slate-400">
+                        Thinking...
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+          )}
+
+          {/* Input area - fixed size, textarea grows */}
+          <div className="flex flex-shrink-0 flex-col gap-3 pt-4">
+            <form onSubmit={handleSubmit}>
+              <div className="mx-auto w-full max-w-3xl">
+                <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
+                  <textarea
+                    className="flex-1 resize-none bg-transparent py-1 text-base outline-none placeholder:text-slate-400 disabled:opacity-50"
+                    disabled={isLoading}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e as unknown as React.FormEvent);
+                      }
+                    }}
+                    placeholder="Tell me about your symptoms..."
+                    ref={textareaRef}
+                    rows={1}
+                    value={input}
+                  />
+                  <button
+                    className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#E07856] to-[#C85C3D] text-white shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl disabled:opacity-50"
+                    disabled={!input.trim() || isLoading}
+                    type="submit"
+                  >
+                    {isLoading ? (
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                    ) : (
+                      <Send className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <p className="text-center text-slate-600 text-xs dark:text-slate-400">
+              ⚕️ Always consult with a healthcare provider. This tool is for
+              discovery, not diagnosis.
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT: Trial Cards - sticky sidebar */}
+        {trials.length > 0 && (
+          <div className="hidden w-96 flex-shrink-0 overflow-y-auto lg:block">
+            <div className="space-y-3">
+              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[#2C3E50] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
+                Matching trials
+              </p>
+              {trials.map((trial) => (
+                <TrialCard
+                  key={trial.nctId}
+                  nctId={trial.nctId}
+                  reasons={trial.matchReasons}
+                  score={trial.relevanceScore}
+                  title={trial.title}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile: Extraction + Trials below chat */}
+        {!isEmptyState && (
+          <div className="w-full lg:hidden">
+            {extraction.symptoms.length > 0 &&
+              (extraction.status === "extracting" ||
+                extraction.status === "complete") && (
+                <ExtractionPanel
+                  age={extraction.age}
+                  conditions={extraction.conditions}
+                  onSearchClick={
+                    trials.length === 0 ? handleSearchTrials : undefined
+                  }
+                  status={trials.length > 0 ? "complete" : extraction.status}
+                  symptoms={extraction.symptoms}
+                />
+              )}
+
+            {trials.length > 0 && (
+              <div className="space-y-3 pt-4">
+                <p className="font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
+                  Matching trials
+                </p>
+                {trials.map((trial) => (
+                  <TrialCard
+                    key={trial.nctId}
+                    nctId={trial.nctId}
+                    reasons={trial.matchReasons}
+                    score={trial.relevanceScore}
+                    title={trial.title}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
