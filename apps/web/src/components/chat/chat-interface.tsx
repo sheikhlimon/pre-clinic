@@ -19,6 +19,7 @@ function stripJsonFromContent(content: string): string {
 interface ExtractedData {
   age?: number;
   symptoms: string[];
+  location?: string;
   conditions: Array<{ name: string; probability: number }>;
   status: "gathering" | "extracting" | "searching" | "complete";
 }
@@ -53,6 +54,7 @@ export default function ChatInterface() {
         body: JSON.stringify({
           age: extraction.age,
           conditions: extraction.conditions.map((c) => c.name),
+          location: extraction.location,
         }),
       });
 
@@ -85,6 +87,7 @@ export default function ChatInterface() {
         setExtraction({
           age: data.age,
           symptoms: data.symptoms || [],
+          location: data.location,
           conditions: data.conditions || [],
           status: data.readyToSearch ? "complete" : "extracting",
         });
@@ -213,6 +216,7 @@ export default function ChatInterface() {
                 <ExtractionPanel
                   age={extraction.age}
                   conditions={extraction.conditions}
+                  location={extraction.location}
                   onSearchClick={
                     trials.length === 0 ? handleSearchTrials : undefined
                   }
@@ -376,6 +380,7 @@ export default function ChatInterface() {
                 <ExtractionPanel
                   age={extraction.age}
                   conditions={extraction.conditions}
+                  location={extraction.location}
                   onSearchClick={
                     trials.length === 0 ? handleSearchTrials : undefined
                   }

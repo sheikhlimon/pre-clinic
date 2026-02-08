@@ -5,11 +5,12 @@ import { rankTrials } from "@/lib/trial-ranking";
 interface SearchRequest {
   age?: number;
   conditions: string[];
+  location?: string;
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { age, conditions } = (await req.json()) as SearchRequest;
+    const { age, conditions, location } = (await req.json()) as SearchRequest;
 
     if (!conditions || conditions.length === 0) {
       return new Response(JSON.stringify({ error: "Conditions required" }), {
@@ -19,10 +20,15 @@ export async function POST(req: NextRequest) {
     }
 
     // eslint-disable-next-line no-console
-    console.log("Searching for trials with conditions:", conditions);
+    console.log(
+      "Searching for trials with conditions:",
+      conditions,
+      "location:",
+      location
+    );
 
     // Search ClinicalTrials.gov
-    const searchResults = await searchTrials({ conditions, age });
+    const searchResults = await searchTrials({ conditions, age, location });
     // eslint-disable-next-line no-console
     console.log("Search results count:", searchResults.length);
 

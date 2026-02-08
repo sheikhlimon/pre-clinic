@@ -48,6 +48,7 @@ async function handleExtractionAndSearch(
     const searchResults = await searchTrials({
       conditions: conditionNames,
       age: extraction.age,
+      location: extraction.location,
     });
     // eslint-disable-next-line no-console
     console.log("Found trials from API:", searchResults.length);

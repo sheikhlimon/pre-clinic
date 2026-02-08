@@ -10,6 +10,7 @@ interface Condition {
 interface ExtractionPanelProps {
   age?: number;
   symptoms: string[];
+  location?: string;
   conditions: Condition[];
   status: "gathering" | "extracting" | "searching" | "complete";
   onSearchClick?: () => void;
@@ -18,6 +19,7 @@ interface ExtractionPanelProps {
 export default function ExtractionPanel({
   age,
   symptoms,
+  location,
   conditions,
   status,
   onSearchClick,
@@ -95,6 +97,24 @@ export default function ExtractionPanel({
               }}
             >
               Age: <span className="font-semibold">{age}</span>
+            </p>
+          </div>
+        )}
+
+        {/* Location display */}
+        {location && (
+          <div className="flex items-center gap-2 rounded-lg bg-white/50 px-3 py-2 dark:bg-slate-800/50">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#A8D5BA]/20">
+              <MapPin className="h-3.5 w-3.5 text-[#A8D5BA]" />
+            </div>
+            <p
+              className="text-slate-800 text-sm dark:text-slate-200"
+              style={{
+                fontSize: "var(--font-size-sm)",
+                lineHeight: "var(--line-height-sm)",
+              }}
+            >
+              Location: <span className="font-semibold">{location}</span>
             </p>
           </div>
         )}

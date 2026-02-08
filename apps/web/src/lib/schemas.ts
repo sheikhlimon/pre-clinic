@@ -5,6 +5,7 @@ export const ExtractionSchema = z.object({
   symptoms: z.array(z.string()),
   duration: z.string().optional(),
   medicalHistory: z.array(z.string()).optional(),
+  location: z.string().optional(),
   conditions: z.array(
     z.object({
       name: z.string(),
