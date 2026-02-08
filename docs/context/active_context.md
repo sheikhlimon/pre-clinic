@@ -1,9 +1,9 @@
 # Active Context
 
 ## Current Task
-✅ **Phase 2 Complete: Modern UI + Bug Fixes**
+🚀 **Phase 3 In Progress: UI/UX Polish & Comprehensive Redesign**
 
-**Status**: All critical bugs fixed, app fully functional
+**Status**: Detailed plan created, ready for implementation (5-8h)
 
 **Bugs Fixed**:
 - ✅ isEmptyState initialization error (a1e9390)
@@ -286,6 +286,76 @@ Created comprehensive Phase 2 plan (UI_REDESIGN_PHASE2_PLAN.md) including:
 2. Implement 2-column layout with responsive grid
 3. Move navbar into hero section
 4. Test on mobile/tablet/desktop
+
+---
+
+### [Entry 8] Phase 3 UI/UX Polish - Comprehensive Redesign Plan
+**Prompt Used:**
+```
+redesign the proper alignment and proper placing of text and navbar and 
+there is generic separator which needs to be modern could use a lucide icon 
+on the toggle theme. take better judgement here for the ui/ux experience 
+plan first then follow through that plan. create a very detailed plan. 
+fix json visibility in chat, fix three-section layout, card placement ideal 
+modern think it through. youre the ui/ux expert.
+```
+
+**AI Response Summary:**
+Created comprehensive Phase 3 UI/UX Polish redesign plan addressing:
+
+1. **Root Cause Analysis** - Identified 6 core UX problems:
+   - 3-column layout breaks at all breakpoints (cramped, disjointed)
+   - JSON blocks visible in chat (breaks trust, shows technical working)
+   - Navbar uses generic separator (feels Bootstrap-like)
+   - Theme toggle buried in dropdown (no visual affordance)
+   - Trial cards appear jarring without animation
+   - Text alignment and spacing inconsistent
+
+2. **Design Direction**:
+   - Inspired by Claude.ai + Linear.app + Vercel
+   - Two-phase responsive layout (Phase 1: chat-focused, Phase 2: results-focused)
+   - Modern design tokens (spacing grid, shadow hierarchy, animations)
+   - 8px grid system for all spacing consistency
+
+3. **Implementation Plan** (4 phases, 5-8 hours):
+   - **Phase 3.1**: JSON elimination + skeleton state (1-2h)
+   - **Phase 3.2**: Navbar & theme toggle redesign (1h)
+   - **Phase 3.3**: Layout restructuring for 2-phase responsive (2-3h)
+   - **Phase 3.4**: Animations + final polish (1-2h)
+
+4. **Key Changes**:
+   - mode-toggle.tsx: Complete rewrite (dropdown → direct toggle with icons)
+   - chat-interface.tsx: Grid-based responsive layout with conditional columns
+   - extraction-panel.tsx: Entrance animations + skeleton state
+   - extraction-skeleton.tsx: New component for loading state
+   - All components: Consistent spacing, typography hierarchy, animations
+
+5. **Success Metrics**:
+   - JSON never visible in chat
+   - Navbar feels modern (no generic separators)
+   - Theme toggle obviously clickable with current state visible
+   - 3-column layout feels balanced and intentional
+   - Mobile-perfect (no horizontal scroll at 320px)
+   - 60fps animations (no jank)
+   - All spacing follows 8px grid
+
+**Files Created**:
+- `docs/context/UI_POLISH_REDESIGN_PLAN.md` - 400+ line detailed specification
+
+**Decision:** ✅ Accept (Ready for Phase 3.1 Implementation)
+**Why:**
+- Detailed root cause analysis before implementation
+- Professional design direction (not generic)
+- Phased approach prevents breaking existing functionality
+- Clear success metrics and testing approach
+- Respects healthcare UX best practices (reduce patient anxiety)
+- Mobile-first approach (patients likely on phones)
+
+**Next Steps**:
+1. Implement Phase 3.1 (JSON elimination + skeleton state)
+2. Test extraction flow on mobile/desktop
+3. Commit with message: "fix: remove JSON blocks from chat, add extraction skeleton"
+4. Continue with Phases 3.2-3.4
 
 ---
 

@@ -30,7 +30,7 @@ export default function ExtractionPanel({
   };
 
   return (
-    <div className="my-4 rounded-2xl border border-[#A8D5BA]/30 bg-gradient-to-br from-[#A8D5BA]/10 to-[#E8F4F8]/20 p-4 shadow-[#A8D5BA]/10 shadow-lg transition-all dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+    <div className="my-4 rounded-2xl border border-[#A8D5BA]/30 bg-gradient-to-br from-[#A8D5BA]/10 to-[#E8F4F8]/20 p-4 shadow-[#A8D5BA]/10 shadow-lg transition-all duration-300 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
       <p className="mb-4 flex items-center gap-2 font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
         <Stethoscope className="h-3.5 w-3.5 text-[#E07856]" />I understood:
       </p>
