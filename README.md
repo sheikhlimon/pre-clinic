@@ -2,6 +2,8 @@
 
 > **Built for healthcare hackathon** - AI-powered oncology clinical trial matching platform that helps cancer patients find relevant research opportunities through natural conversation.
 
+<video src="[YOUR_VIDEO_URL.mp4](https://github.com/user-attachments/assets/a872592c-c002-4254-aafa-ba57fb4be7c5)" muted controls loop autoplay style="max-width: 100%;"></video>
+
 ## What It Does
 
 PreClinic uses natural language processing to understand patient symptoms and medical history, then matches them with appropriate cancer clinical trials from ClinicalTrials.gov.
@@ -106,12 +108,6 @@ pre-clinic/
 - `npm run build`: Build for production
 - `npm run check-types`: Check TypeScript types
 
-## Environment Variables
-
-```
-OPENROUTER_API_KEY=your-openrouter-api-key
-```
-
 ## How the AI Matching Works
 
 1. **Symptom Extraction**: Claude 3.5 Sonnet analyzes chat messages to extract structured medical data
@@ -123,17 +119,6 @@ OPENROUTER_API_KEY=your-openrouter-api-key
    - Phase preference (Phase 1-2)
    - Age appropriateness
    - Location proximity
-
-## Design System
-
-- **Primary Color**: Terracotta orange `#E07856`
-- **Secondary Color**: Sage green `#A8D5BA`
-- **Dark Background**: Forest green `#1A2F23`
-- **Light Background**: Sand `#F5F2ED`
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
