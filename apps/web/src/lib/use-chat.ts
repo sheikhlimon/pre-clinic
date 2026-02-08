@@ -1,10 +1,19 @@
 import { useCallback, useState } from "react";
 
+export interface ExtractedData {
+  age?: number;
+  symptoms: string[];
+  location?: string;
+  conditions: Array<{ name: string; probability: number }>;
+  readyToSearch?: boolean;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   trials?: TrialData[];
+  extractedData?: ExtractedData;
 }
 
 export interface UseChatOptions {
@@ -35,6 +44,7 @@ async function fetchChatResponse(api: string, messages: Message[]) {
 function processStreamChunk(
   chunk: string,
   onContent: (content: string) => void,
+  onExtractedData?: (data: ExtractedData) => void,
   onTrials?: (trials: TrialData[]) => void
 ) {
   const lines = chunk.split("\n");
@@ -48,6 +58,9 @@ function processStreamChunk(
       const data = JSON.parse(line.slice(6));
       if (data.content) {
         onContent(data.content);
+      }
+      if (data.extractedData && onExtractedData) {
+        onExtractedData(data.extractedData);
       }
       if (data.trials && onTrials) {
         onTrials(data.trials);
@@ -133,6 +146,16 @@ export function useChat({ api }: UseChatOptions) {
                 ]);
                 messageAdded = true;
               }
+            },
+            (extractedData) => {
+              setMessages((prev) => {
+                const updated = [...prev];
+                const lastMsg = updated.at(-1);
+                if (lastMsg?.id === assistantId) {
+                  lastMsg.extractedData = extractedData;
+                }
+                return updated;
+              });
             },
             (trials) => {
               setMessages((prev) => {

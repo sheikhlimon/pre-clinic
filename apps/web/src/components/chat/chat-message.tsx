@@ -1,5 +1,14 @@
 "use client";
 
+// Match JSON blocks in code format only
+// Only strip actual JSON in code blocks, not text that happens to contain JSON-like words
+const JSON_BLOCK_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
+
+function stripJsonBlocks(content: string): string {
+  // Only remove code block formatted JSON
+  return content.replace(JSON_BLOCK_REGEX, "").trim();
+}
+
 interface ChatMessageProps {
   content: string;
   role: "user" | "assistant";
@@ -7,6 +16,9 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ content, role }: ChatMessageProps) {
   const isUser = role === "user";
+
+  // Strip JSON blocks from assistant messages for display
+  const displayContent = isUser ? content : stripJsonBlocks(content);
 
   return (
     <div
@@ -26,8 +38,10 @@ export default function ChatMessage({ content, role }: ChatMessageProps) {
           lineHeight: "var(--line-height-sm)",
         }}
       >
-        {content ? (
-          <p className="whitespace-pre-wrap leading-relaxed">{content}</p>
+        {displayContent ? (
+          <p className="whitespace-pre-wrap leading-relaxed">
+            {displayContent}
+          </p>
         ) : (
           <p className="text-slate-400 italic dark:text-slate-500">
             No content to display

@@ -1,26 +1,15 @@
 "use client";
 
-import { Loader2, MessageCircle, Send, Sparkles } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
-import type { TrialData } from "@/lib/use-chat";
+import type { ExtractedData, TrialData } from "@/lib/use-chat";
 import { useChat } from "@/lib/use-chat";
 import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
 import TrialCard from "./trial-card";
 
-const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
-
-// Function to remove JSON blocks from content
-function stripJsonFromContent(content: string): string {
-  return content.replace(JSON_REGEX, "").trim();
-}
-
-interface ExtractedData {
-  age?: number;
-  symptoms: string[];
-  location?: string;
-  conditions: Array<{ name: string; probability: number }>;
+interface LocalExtractedData extends ExtractedData {
   status: "gathering" | "extracting" | "searching" | "complete";
 }
 
@@ -36,7 +25,7 @@ export default function ChatInterface() {
     api: "/api/chat",
   });
 
-  const [extraction, setExtraction] = useState<ExtractedData>({
+  const [extraction, setExtraction] = useState<LocalExtractedData>({
     symptoms: [],
     conditions: [],
     status: "gathering",
@@ -48,6 +37,28 @@ export default function ChatInterface() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isEmptyState = messages.length === 0;
+
+  const starterPrompts = [
+    {
+      title: "What symptoms are you experiencing?",
+      description:
+        "I'll analyze your symptoms and identify matching clinical trials",
+      prompt: "What symptoms are you experiencing?",
+    },
+    {
+      title: "What's your diagnosis?",
+      description:
+        "Share your condition and I'll find relevant trials you may qualify for",
+      prompt: "What's your diagnosis?",
+    },
+  ];
+
+  const handleStarterPrompt = (promptText: string) => {
+    handleInputChange({
+      target: { value: promptText },
+    } as React.ChangeEvent<HTMLTextAreaElement>);
+    handleSubmit(new Event("submit") as unknown as React.FormEvent);
+  };
 
   // Manual search for trials
   const handleSearchTrials = async () => {
@@ -85,21 +96,17 @@ export default function ChatInterface() {
       return;
     }
 
-    // Parse extraction
-    const jsonMatch = lastMessage.content.match(JSON_REGEX);
-    if (jsonMatch) {
-      try {
-        const data = JSON.parse(jsonMatch[1]);
-        setExtraction({
-          age: data.age,
-          symptoms: data.symptoms || [],
-          location: data.location,
-          conditions: data.conditions || [],
-          status: data.readyToSearch ? "complete" : "extracting",
-        });
-      } catch (_e) {
-        // JSON parsing failed, continue
-      }
+    // Use extractedData from message (JSON already parsed in use-chat hook)
+    if (lastMessage.extractedData) {
+      setExtraction({
+        age: lastMessage.extractedData.age,
+        symptoms: lastMessage.extractedData.symptoms || [],
+        location: lastMessage.extractedData.location,
+        conditions: lastMessage.extractedData.conditions || [],
+        status: lastMessage.extractedData.readyToSearch
+          ? "complete"
+          : "extracting",
+      });
     }
 
     // Get trials from message
@@ -107,6 +114,18 @@ export default function ChatInterface() {
       setTrials(lastMessage.trials);
     }
   }, [messages]);
+
+  // Auto-trigger search when extraction is ready and no trials yet
+  // biome-ignore lint/correctness/useExhaustiveDependencies: handleSearchTrials is a stable component-level function
+  useEffect(() => {
+    if (
+      extraction.status === "complete" &&
+      extraction.conditions.length > 0 &&
+      trials.length === 0
+    ) {
+      handleSearchTrials();
+    }
+  }, [extraction.status, extraction.conditions.length, trials.length]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -235,16 +254,36 @@ export default function ChatInterface() {
 
         {/* CENTER: Chat Interface */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {/* Empty State - icon + prompt */}
+          {/* Empty State - starter prompt cards */}
           {isEmptyState && (
-            <div className="flex flex-1 items-center justify-center">
-              <div
-                className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[#E07856] to-[#C85C3D] sm:h-24 sm:w-24"
-                style={{
-                  boxShadow: "var(--shadow-terracotta-md)",
-                }}
-              >
-                <MessageCircle className="h-10 w-10 text-white sm:h-12 sm:w-12" />
+            <div className="flex flex-1 items-center justify-center px-4">
+              <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+                {starterPrompts.map((card) => (
+                  <button
+                    className="flex flex-col items-start rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:border-[#E07856]/50 hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+                    key={card.prompt}
+                    onClick={() => handleStarterPrompt(card.prompt)}
+                    type="button"
+                  >
+                    <h3
+                      className="font-semibold dark:text-white"
+                      style={{
+                        color: "var(--color-indigo)",
+                        fontSize: "var(--font-size-base)",
+                      }}
+                    >
+                      {card.title}
+                    </h3>
+                    <p
+                      className="mt-1 text-slate-600 text-sm dark:text-slate-400"
+                      style={{
+                        fontSize: "var(--font-size-sm)",
+                      }}
+                    >
+                      {card.description}
+                    </p>
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -258,7 +297,7 @@ export default function ChatInterface() {
               <div className="mx-auto w-full max-w-3xl space-y-3 px-2 sm:space-y-4 sm:px-4 md:px-0">
                 {messages.map((message) => (
                   <ChatMessage
-                    content={stripJsonFromContent(message.content)}
+                    content={message.content}
                     key={message.id}
                     role={message.role}
                   />

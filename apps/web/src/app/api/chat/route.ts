@@ -4,7 +4,12 @@ import { SYSTEM_PROMPT } from "@/lib/prompts";
 import { ExtractionSchema } from "@/lib/schemas";
 import { rankTrials } from "@/lib/trial-ranking";
 
-const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
+const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
+
+// Strip JSON blocks from content for display
+function stripJsonFromContent(content: string): string {
+  return content.replace(JSON_REGEX, "").trim();
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -25,15 +30,19 @@ async function handleExtractionAndSearch(
 ): Promise<TrialResult[] | null> {
   const jsonMatch = fullText.match(JSON_REGEX);
   if (!jsonMatch) {
-    // eslint-disable-next-line no-console
-    console.log("No JSON extraction found in response");
     return null;
   }
 
   try {
-    const extraction = ExtractionSchema.parse(JSON.parse(jsonMatch[1]));
-    // eslint-disable-next-line no-console
-    console.log("Extraction parsed:", extraction);
+    const jsonStr = jsonMatch[1];
+    const extraction = ExtractionSchema.parse(JSON.parse(jsonStr));
+
+    // Send extracted data to frontend for extraction panel
+    controller.enqueue(
+      encoder.encode(
+        `data: ${JSON.stringify({ extractedData: extraction })}\n\n`
+      )
+    );
 
     if (!extraction.readyToSearch || extraction.conditions.length === 0) {
       // eslint-disable-next-line no-console
@@ -68,7 +77,6 @@ async function handleExtractionAndSearch(
     controller.enqueue(
       encoder.encode(
         `data: ${JSON.stringify({
-          content: `\n\nFound ${rankedTrials.length} matching trials.`,
           trials: trialsData,
         })}\n\n`
       )
@@ -83,13 +91,9 @@ async function handleExtractionAndSearch(
   }
 }
 
-function processStreamChunk(
-  chunk: string,
-  encoder: TextEncoder,
-  controller: ReadableStreamDefaultController<Uint8Array>
-): string {
-  let accumulated = "";
+function processStreamChunk(chunk: string): string {
   const lines = chunk.split("\n");
+  let accumulatedContent = "";
 
   for (const line of lines) {
     if (!line.startsWith("data: ")) {
@@ -105,17 +109,14 @@ function processStreamChunk(
       const parsed = JSON.parse(data);
       const content = parsed.choices?.[0]?.delta?.content || "";
       if (content) {
-        accumulated += content;
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
-        );
+        accumulatedContent += content;
       }
     } catch {
       // Skip unparseable lines
     }
   }
 
-  return accumulated;
+  return accumulatedContent;
 }
 
 export async function POST(req: NextRequest) {
@@ -168,12 +169,23 @@ export async function POST(req: NextRequest) {
           while (true) {
             const { done, value } = await reader.read();
             if (done) {
+              // Extract JSON from full text and search for trials
               await handleExtractionAndSearch(fullText, encoder, controller);
               break;
             }
 
             const chunk = new TextDecoder().decode(value);
-            fullText += processStreamChunk(chunk, encoder, controller);
+            fullText += processStreamChunk(chunk);
+          }
+
+          // After extracting JSON, stream the non-JSON content to client
+          const cleanContent = stripJsonFromContent(fullText);
+          if (cleanContent) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ content: cleanContent })}\n\n`
+              )
+            );
           }
         } finally {
           controller.close();
