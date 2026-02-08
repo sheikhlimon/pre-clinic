@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Baby, Search, Stethoscope } from "lucide-react";
+import { Activity, Baby, MapPin, Search, Stethoscope } from "lucide-react";
 
 interface Condition {
   name: string;
