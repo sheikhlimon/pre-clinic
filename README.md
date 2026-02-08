@@ -2,7 +2,7 @@
 
 > **Built for healthcare hackathon** - AI-powered oncology clinical trial matching platform that helps cancer patients find relevant research opportunities through natural conversation.
 
-<video src="[YOUR_VIDEO_URL.mp4](https://github.com/user-attachments/assets/a872592c-c002-4254-aafa-ba57fb4be7c5)" muted controls loop autoplay style="max-width: 100%;"></video>
+(https://github.com/user-attachments/assets/a872592c-c002-4254-aafa-ba57fb4be7c5)
 
 ## What It Does
 
