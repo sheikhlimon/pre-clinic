@@ -62,6 +62,7 @@ export function useChat({ api }: UseChatOptions) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -92,6 +93,7 @@ export function useChat({ api }: UseChatOptions) {
         const assistantId = (Date.now() + 1).toString();
         let assistantContent = "";
         let messageAdded = false;
+        let streamingStarted = false;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -104,6 +106,12 @@ export function useChat({ api }: UseChatOptions) {
             chunk,
             (content) => {
               assistantContent += content;
+
+              // Hide thinking indicator when streaming starts
+              if (!streamingStarted && content) {
+                streamingStarted = true;
+                setIsStreaming(true);
+              }
 
               if (messageAdded) {
                 setMessages((prev) => {
@@ -143,6 +151,7 @@ export function useChat({ api }: UseChatOptions) {
         console.error("Chat error:", error);
       } finally {
         setIsLoading(false);
+        setIsStreaming(false);
       }
     },
     [api, input, isLoading, messages]
@@ -162,5 +171,6 @@ export function useChat({ api }: UseChatOptions) {
     handleInputChange,
     handleSubmit,
     isLoading,
+    isStreaming,
   };
 }

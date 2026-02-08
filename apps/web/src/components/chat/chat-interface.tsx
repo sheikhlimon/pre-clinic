@@ -25,10 +25,16 @@ interface ExtractedData {
 }
 
 export default function ChatInterface() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
-      api: "/api/chat",
-    });
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    isStreaming,
+  } = useChat({
+    api: "/api/chat",
+  });
 
   const [extraction, setExtraction] = useState<ExtractedData>({
     symptoms: [],
@@ -257,6 +263,23 @@ export default function ChatInterface() {
                     role={message.role}
                   />
                 ))}
+
+                {isLoading && !isStreaming && (
+                  <div className="flex justify-start">
+                    <div className="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-slate-800">
+                      <Loader2 className="h-4 w-4 animate-spin text-[#E07856]" />
+                      <p
+                        className="text-slate-600 text-sm dark:text-slate-400"
+                        style={{
+                          fontSize: "var(--font-size-sm)",
+                          lineHeight: "var(--line-height-sm)",
+                        }}
+                      >
+                        Thinking...
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <div className="h-3 sm:h-4" />
               </div>
