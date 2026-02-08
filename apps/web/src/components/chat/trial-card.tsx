@@ -30,7 +30,7 @@ export default function TrialCard({
   };
 
   return (
-    <div className="group my-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-500/5 transition-all duration-500 hover:shadow-slate-500/10 hover:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
+    <div className="group my-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-500/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-500/15 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="flex-1 font-medium text-[#2C3E50] text-sm leading-snug dark:text-slate-100">
           {title}
@@ -69,12 +69,12 @@ export default function TrialCard({
 
       {/* CTA */}
       <button
-        className="group/btn flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-white text-xs shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl"
+        className="group/btn flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-white text-xs shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-2xl hover:shadow-[#E07856]/40"
         onClick={handleClick}
         type="button"
       >
         <span>View Trial</span>
-        <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+        <ArrowUpRight className="h-3.5 w-3.5 transition-all duration-300 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1" />
       </button>
     </div>
   );

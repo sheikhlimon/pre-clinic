@@ -30,7 +30,7 @@ export default function ExtractionPanel({
   };
 
   return (
-    <div className="my-4 rounded-2xl border border-[#A8D5BA]/30 bg-gradient-to-br from-[#A8D5BA]/10 to-[#E8F4F8]/20 p-4 shadow-[#A8D5BA]/10 shadow-lg transition-all duration-300 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+    <div className="my-4 rounded-2xl border border-[#A8D5BA]/30 bg-gradient-to-br from-[#A8D5BA]/10 to-[#E8F4F8]/20 p-4 shadow-[#A8D5BA]/10 shadow-lg transition-all duration-500 hover:shadow-[#A8D5BA]/20 hover:shadow-xl dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
       <p className="mb-4 flex items-center gap-2 font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
         <Stethoscope className="h-3.5 w-3.5 text-[#E07856]" />I understood:
       </p>
@@ -85,11 +85,11 @@ export default function ExtractionPanel({
         {/* Search button when ready */}
         {status === "complete" && onSearchClick && (
           <button
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-white text-xs shadow-[#E07856]/20 shadow-lg transition-all hover:shadow-[#E07856]/30 hover:shadow-xl"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#E07856] to-[#C85C3D] px-4 py-2.5 font-medium text-white text-xs shadow-[#E07856]/20 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-[#E07856]/40 hover:shadow-xl"
             onClick={onSearchClick}
             type="button"
           >
-            <Search className="h-3.5 w-3.5" />
+            <Search className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
             <span>Search for matching trials</span>
           </button>
         )}
