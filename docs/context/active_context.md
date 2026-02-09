@@ -1,9 +1,15 @@
 # Active Context
 
 ## Current Task
-✅ **Fixed API trial rendering, chat padding, and auto-trigger search**
+**Mobile UX Improvements Complete**
 
-**Status**: Completed - trials now render automatically without button click
+**Status**: Completed - collapsible cards, navbar visibility, clear chat icon
+
+**Changes Made**:
+- Navbar: Changed to "auto" height for better visibility on all screens
+- Clear chat: Icon-only on mobile, icon+text on desktop
+- Mobile cards: Collapsible section with expand/collapse toggle
+- Chat flow: New messages appear below collapsed cards section
 
 **Bugs Fixed**:
 - ✅ isEmptyState initialization error (a1e9390)

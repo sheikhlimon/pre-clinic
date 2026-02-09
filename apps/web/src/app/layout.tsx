@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { Geist, Geist_Mono } from "next/font/google";
 
@@ -19,6 +19,14 @@ export const metadata: Metadata = {
   title: "PreClinic | Find Clinical Trials",
   description:
     "AI-powered symptom-to-trial matching platform connecting patients with life-changing clinical research opportunities.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

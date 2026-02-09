@@ -1,6 +1,15 @@
 "use client";
 
-import { Activity, Github, Loader2, Search, Send } from "lucide-react";
+import {
+  Activity,
+  ChevronDown,
+  ChevronUp,
+  Github,
+  Loader2,
+  RotateCcw,
+  Search,
+  Send,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import type { TrialData } from "@/lib/use-chat";
@@ -43,6 +52,7 @@ export default function ChatInterface() {
   });
 
   const [trials, setTrials] = useState<TrialData[]>([]);
+  const [mobileCardsExpanded, setMobileCardsExpanded] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -92,6 +102,7 @@ export default function ChatInterface() {
   }, [messages]);
 
   // Auto-scroll to bottom on new messages
+  // biome-ignore lint/correctness/useExhaustiveDependencies: messages needed to trigger scroll
   useEffect(() => {
     if (!isEmptyState) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -99,10 +110,11 @@ export default function ChatInterface() {
   }, [messages, isEmptyState]);
 
   // Auto-grow textarea
+  // biome-ignore lint/correctness/useExhaustiveDependencies: input needed for resize calculation
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      const newHeight = Math.min(textareaRef.current.scrollHeight, 120);
+      const newHeight = Math.min(textareaRef.current.scrollHeight, 160);
       textareaRef.current.style.height = `${newHeight}px`;
     }
   }, [input]);
@@ -141,7 +153,7 @@ export default function ChatInterface() {
           isEmptyState ? "px-6 py-6" : "px-6 py-3"
         }`}
         style={{
-          maxHeight: isEmptyState ? "400px" : "70px",
+          maxHeight: isEmptyState ? "400px" : "auto",
         }}
       >
         {/* Navbar Row */}
@@ -162,7 +174,7 @@ export default function ChatInterface() {
           <div className="flex items-center gap-2">
             {!isEmptyState && (
               <button
-                className="rounded-lg px-3 py-1.5 text-slate-600 text-sm transition-colors hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-slate-600 text-sm transition-colors hover:bg-slate-100 sm:px-3 dark:text-slate-400 dark:hover:bg-slate-800"
                 onClick={() => {
                   clearChat();
                   setExtraction({
@@ -174,7 +186,8 @@ export default function ChatInterface() {
                 }}
                 type="button"
               >
-                Clear chat
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">Clear chat</span>
               </button>
             )}
             <a
@@ -287,7 +300,7 @@ export default function ChatInterface() {
             </div>
           )}
 
-          {/* Messages area - visible when chatting */}
+          {/* Messages area - visible when chatting, includes mobile cards */}
           {!isEmptyState && (
             <div className="flex flex-1 overflow-y-auto pb-4">
               <div className="mx-auto w-full max-w-3xl space-y-4 py-4">
@@ -309,13 +322,75 @@ export default function ChatInterface() {
                     </div>
                   </div>
                 )}
+
+                {/* MOBILE ONLY: Collapsible cards section inline with messages */}
+                {(extraction.symptoms.length > 0 || trials.length > 0) && (
+                  <div className="lg:hidden">
+                    <button
+                      className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+                      onClick={() =>
+                        setMobileCardsExpanded(!mobileCardsExpanded)
+                      }
+                      type="button"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-slate-600 text-xs uppercase dark:text-slate-400">
+                          {trials.length > 0
+                            ? `${trials.length} trials found`
+                            : "Extracted info"}
+                        </span>
+                        {extraction.symptoms.length > 0 && (
+                          <span className="rounded-full bg-[#E07856] px-2 py-0.5 text-white text-xs">
+                            {extraction.symptoms.length} symptoms
+                          </span>
+                        )}
+                      </div>
+                      {mobileCardsExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                      )}
+                    </button>
+
+                    {mobileCardsExpanded && (
+                      <div className="mt-3 space-y-3">
+                        {extraction.symptoms.length > 0 &&
+                          (extraction.status === "extracting" ||
+                            extraction.status === "complete") && (
+                            <ExtractionPanel
+                              age={extraction.age}
+                              conditions={extraction.conditions}
+                              status={
+                                trials.length > 0
+                                  ? "complete"
+                                  : extraction.status
+                              }
+                              symptoms={extraction.symptoms}
+                            />
+                          )}
+
+                        {trials.length > 0 &&
+                          trials.map((trial) => (
+                            <TrialCard
+                              key={trial.nctId}
+                              nctId={trial.nctId}
+                              reasons={trial.matchReasons}
+                              score={trial.relevanceScore}
+                              title={trial.title}
+                            />
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="pt-2" ref={messagesEndRef} />
               </div>
             </div>
           )}
 
           {/* Input area - fixed size, textarea grows */}
-          <div className="flex flex-shrink-0 flex-col gap-3 px-4 py-4">
+          <div className="flex flex-shrink-0 flex-col gap-3 px-4 py-4 pb-safe">
             <form onSubmit={handleSubmit}>
               <div className="mx-auto w-full max-w-3xl">
                 <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-lg shadow-slate-200/50 transition-all focus-within:border-[#E07856]/30 focus-within:shadow-[#E07856]/10 focus-within:shadow-xl dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-900/50">
@@ -380,39 +455,6 @@ export default function ChatInterface() {
                 />
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Mobile: Extraction + Trials below chat */}
-        {!isEmptyState && (
-          <div className="w-full lg:hidden">
-            {extraction.symptoms.length > 0 &&
-              (extraction.status === "extracting" ||
-                extraction.status === "complete") && (
-                <ExtractionPanel
-                  age={extraction.age}
-                  conditions={extraction.conditions}
-                  status={trials.length > 0 ? "complete" : extraction.status}
-                  symptoms={extraction.symptoms}
-                />
-              )}
-
-            {trials.length > 0 && (
-              <div className="space-y-3 pt-4">
-                <p className="font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
-                  Matching trials
-                </p>
-                {trials.map((trial) => (
-                  <TrialCard
-                    key={trial.nctId}
-                    nctId={trial.nctId}
-                    reasons={trial.matchReasons}
-                    score={trial.relevanceScore}
-                    title={trial.title}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>
