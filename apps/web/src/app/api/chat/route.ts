@@ -172,9 +172,9 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         },
         body: JSON.stringify({
-          model: process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4",
+          model: process.env.OPENROUTER_MODEL || "openrouter/free",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 500,
+          max_tokens: 1000,
           temperature: 0.7,
           stream: true,
         }),
