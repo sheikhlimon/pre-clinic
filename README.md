@@ -26,9 +26,10 @@ PreClinic uses natural language processing to understand patient symptoms and me
    https://openrouter.ai/keys
    ```
 
-2. **Add your API key to `apps/web/.env`**
+2. **Add your API key and model to `apps/web/.env`**
    ```
    OPENROUTER_API_KEY=sk-or-v1-your-key-here
+   OPENROUTER_MODEL=openrouter/free
    ```
 
 3. **Install dependencies**
@@ -70,7 +71,7 @@ Click on trial cards to view full details on ClinicalTrials.gov, including eligi
 
 - **Framework**: Next.js 16 (App Router) + React 19
 - **UI Library**: shadcn/ui + Tailwind CSS
-- **AI Model**: Claude 3.5 Sonnet via OpenRouter API
+- **AI Model**: Configurable via OpenRouter (defaults to free model router)
 - **Data Source**: ClinicalTrials.gov V2 API (free, no authentication)
 - **State Management**: React hooks + localStorage
 - **Type Safety**: TypeScript
@@ -110,7 +111,7 @@ pre-clinic/
 
 ## How the AI Matching Works
 
-1. **Symptom Extraction**: Claude 3.5 Sonnet analyzes chat messages to extract structured medical data
+1. **Symptom Extraction**: AI analyzes chat messages to extract structured medical data
 2. **Condition Identification**: AI identifies possible conditions with probability scores
 3. **Trial Search**: ClinicalTrials.gov API searched by condition names
 4. **Relevance Ranking**: Trials scored based on:
