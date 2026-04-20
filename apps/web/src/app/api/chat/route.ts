@@ -6,7 +6,6 @@ import { rankTrials } from "@/lib/trial-ranking";
 
 const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/;
 
-// Strip JSON blocks from content for display
 function stripJsonFromContent(content: string): string {
   return content.replace(JSON_REGEX, "").trim();
 }
@@ -110,7 +109,6 @@ async function handleExtractionAndSearch(
       console.error("Error sending trials:", sendError);
     }
   } catch (e) {
-    // Parsing or search error, continue silently
     // eslint-disable-next-line no-console
     console.error("Extraction/search error:", e);
     if (e instanceof Error) {
@@ -226,7 +224,7 @@ export async function POST(req: NextRequest) {
             fullText += processStreamChunk(chunk);
           }
 
-          // After extracting JSON, stream the non-JSON content to client
+          // Stream the non-JSON content to client
           const cleanContent = stripJsonFromContent(fullText);
           if (cleanContent && cleanContent.trim().length > 0) {
             controller.enqueue(
@@ -240,7 +238,6 @@ export async function POST(req: NextRequest) {
           console.error("Stream error:", error);
         }
 
-        // Close controller AFTER all async operations complete
         controller.close();
       },
     });

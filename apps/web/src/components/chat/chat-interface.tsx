@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Github, Loader2, RotateCcw, Search } from "lucide-react";
+import { Activity, Github, Loader2, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
 import type { Condition, ExtractionStatus, TrialData } from "@/lib/types";
@@ -13,7 +13,8 @@ import MobileCardsPanel from "./mobile-cards-panel";
 import PromptCard from "./prompt-card";
 import TrialCard from "./trial-card";
 
-const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
+const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
+const XML_TAG_REGEX = /<\/?[a-zA-Z][\w-]*(?:\s[^>]*)?\/?>/g;
 const PROMPTS = [
   "I'm experiencing symptoms and want to find clinical trials that might help",
   "I've been diagnosed with cancer and looking for treatment options",
@@ -27,7 +28,7 @@ interface ExtractionState {
 }
 
 function stripJsonFromContent(content: string): string {
-  return content.replace(JSON_REGEX, "").trim();
+  return content.replace(JSON_REGEX, "").replace(XML_TAG_REGEX, "").trim();
 }
 
 export default function ChatInterface() {
@@ -39,6 +40,7 @@ export default function ChatInterface() {
     handleSubmit,
     sendMessage,
     isLoading,
+    isStreaming,
     error,
     clearChat,
   } = useChat({ api: "/api/chat" });
@@ -105,17 +107,17 @@ export default function ChatInterface() {
     <div className="flex h-full w-full flex-col overflow-hidden">
       {/* Navbar */}
       <div
-        className={`flex-shrink-0 border-b border-[var(--color-cream-dark)] bg-[var(--color-cream)]/80 backdrop-blur-md transition-all duration-500 dark:border-[#2a2520] dark:bg-[#1a1714]/80 ${
-          isEmptyState ? "px-6 py-4 md:px-10" : "px-6 py-3 md:px-10"
+        className={`flex-shrink-0 border-b border-[var(--color-cream-dark)] bg-[var(--color-cream)]/80 backdrop-blur-md dark:border-[#2a2520] dark:bg-[#1a1714]/80 ${
+          isEmptyState ? "px-6 py-3 md:px-10" : "px-4 py-2.5 md:px-6"
         }`}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-terracotta)] shadow-md shadow-[var(--color-terracotta)]/20">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-terracotta)]">
               <Activity className="h-4 w-4 text-white" />
             </div>
             <div className="flex items-baseline gap-1.5">
-              <span className="font-display text-[var(--color-indigo)] text-lg font-semibold tracking-tight dark:text-[#e8e0d4]">
+              <span className="font-display text-[var(--color-indigo)] text-base font-semibold tracking-tight dark:text-[#e8e0d4]">
                 PreClinic
               </span>
               <span className="hidden text-slate-400 text-xs sm:inline dark:text-slate-500">
@@ -123,7 +125,7 @@ export default function ChatInterface() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {!isEmptyState && (
               <button
                 className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-slate-500 text-sm transition-colors hover:bg-black/5 dark:text-slate-400 dark:hover:bg-white/5"
@@ -148,7 +150,7 @@ export default function ChatInterface() {
 
         {/* Hero — editorial layout */}
         {isEmptyState && (
-          <div className="mx-auto mt-6 max-w-2xl pb-4 text-left md:mt-8 md:text-center lg:mt-12">
+          <div className="mx-auto mt-6 max-w-2xl text-left md:mt-8 md:text-center lg:mt-12">
             <p className="mb-2 text-[var(--color-terracotta)] text-xs font-medium uppercase tracking-widest animate-fadeIn md:text-sm dark:text-[var(--color-terracotta-light)]">
               Oncology trial matching
             </p>
@@ -172,7 +174,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Content */}
-      <div className="flex min-h-0 flex-1 gap-5 overflow-hidden px-4 py-4 md:px-6">
+      <div className="flex min-h-0 flex-1 gap-5 overflow-hidden px-4 pt-0 pb-4 md:px-6">
         {/* LEFT: Extraction Panel */}
         {hasExtraction && (
           <div className="hidden w-72 flex-shrink-0 overflow-y-auto lg:block">
@@ -204,7 +206,7 @@ export default function ChatInterface() {
             </div>
           ) : (
             <div className="flex flex-1 overflow-y-auto pb-4 scrollbar-thin">
-              <div className="mx-auto w-full max-w-3xl space-y-4 py-4">
+              <div className="mx-auto w-full max-w-3xl space-y-4 pt-3 pb-4">
                 {messages.map((message) => (
                   <ChatMessage
                     content={stripJsonFromContent(message.content)}
@@ -218,7 +220,7 @@ export default function ChatInterface() {
                   <ErrorBanner message={error} type="error" />
                 )}
 
-                {isLoading && (
+                {isLoading && !isStreaming && (
                   <div className="flex justify-start">
                     <div className="flex items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 shadow-sm dark:bg-[#1e1b18]/80">
                       <Loader2 className="h-4 w-4 animate-spin text-[var(--color-terracotta)]" />
