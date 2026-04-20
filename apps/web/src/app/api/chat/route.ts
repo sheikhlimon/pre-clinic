@@ -26,7 +26,7 @@ interface TrialResult {
 async function handleExtractionAndSearch(
   fullText: string,
   encoder: TextEncoder,
-  controller: ReadableStreamDefaultController<Uint8Array>
+  controller: ReadableStreamDefaultController<Uint8Array>,
 ): Promise<void> {
   const jsonMatch = fullText.match(JSON_REGEX);
   if (!jsonMatch) {
@@ -50,8 +50,8 @@ async function handleExtractionAndSearch(
     // Send extraction data to frontend for extraction panel display
     controller.enqueue(
       encoder.encode(
-        `data: ${JSON.stringify({ extractedData: extraction })}\n\n`
-      )
+        `data: ${JSON.stringify({ extractedData: extraction })}\n\n`,
+      ),
     );
 
     if (!extraction.readyToSearch) {
@@ -101,7 +101,7 @@ async function handleExtractionAndSearch(
 
     try {
       controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ trials })}\n\n`)
+        encoder.encode(`data: ${JSON.stringify({ trials })}\n\n`),
       );
       // eslint-disable-next-line no-console
       console.log("Trials sent successfully");
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
         error: "missing_api_key",
         message: "OpenRouter API key not configured",
       },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
           temperature: 0.7,
           stream: true,
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -191,12 +191,12 @@ export async function POST(req: NextRequest) {
           parsed?.error?.message || parsed?.error?.code || "Unknown API error";
         return Response.json(
           { error: "openrouter_error", message },
-          { status: response.status }
+          { status: response.status },
         );
       } catch {
         return Response.json(
           { error: "openrouter_error", message: errorText.slice(0, 200) },
-          { status: response.status }
+          { status: response.status },
         );
       }
     }
@@ -231,8 +231,8 @@ export async function POST(req: NextRequest) {
           if (cleanContent && cleanContent.trim().length > 0) {
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ content: cleanContent })}\n\n`
-              )
+                `data: ${JSON.stringify({ content: cleanContent })}\n\n`,
+              ),
             );
           }
         } catch (error) {

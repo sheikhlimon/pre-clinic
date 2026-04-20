@@ -11,7 +11,7 @@ export const ExtractionSchema = z.object({
       name: z.string(),
       probability: z.number(),
       reason: z.string().optional(),
-    })
+    }),
   ),
   readyToSearch: z.boolean(),
 });

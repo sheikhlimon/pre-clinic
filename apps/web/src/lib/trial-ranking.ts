@@ -2,7 +2,7 @@ import type { Extraction, RankedTrial, Trial } from "./schemas";
 
 export function rankTrials(
   trials: Trial[],
-  extraction: Extraction
+  extraction: Extraction,
 ): RankedTrial[] {
   return trials
     .map((trial) => {
@@ -14,8 +14,8 @@ export function rankTrials(
         trial.conditions.some(
           (trialCond) =>
             trialCond.toLowerCase().includes(cond.name.toLowerCase()) ||
-            cond.name.toLowerCase().includes(trialCond.toLowerCase())
-        )
+            cond.name.toLowerCase().includes(trialCond.toLowerCase()),
+        ),
       );
 
       if (matchingConditions.length > 0) {

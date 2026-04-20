@@ -41,14 +41,14 @@ export default function ChatInput({
         onSubmit(e as unknown as FormEvent);
       }
     },
-    [onSubmit]
+    [onSubmit],
   );
 
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLTextAreaElement>) => {
       e.currentTarget.setSelectionRange(value.length, value.length);
     },
-    [value.length]
+    [value.length],
   );
 
   return (

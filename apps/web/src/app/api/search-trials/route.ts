@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       "Searching for trials with conditions:",
       conditions,
       "location:",
-      location
+      location,
     );
 
     // Search ClinicalTrials.gov
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
       {
         status: 500,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   }
 }

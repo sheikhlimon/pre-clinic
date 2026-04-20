@@ -43,15 +43,15 @@ Types: feat, fix, chore, refactor, docs
    - Verification steps
 3. Get approval before executing
 
-## Ultracite
+## Linting & Formatting
 
 **Run before every commit:**
 
 ```bash
-npm exec -- ultracite fix
+npm run lint:fix && npm run format
 ```
 
-Biome handles most formatting. Focus on things it can't catch:
+Pre-commit hook (husky + lint-staged) runs automatically. Focus on things linters can't catch:
 - Business logic correctness
 - Meaningful naming
 - Architecture decisions
@@ -73,7 +73,7 @@ Before committing:
 - [ ] Tested manually
 - [ ] No security vulnerabilities
 - [ ] Follows standards
-- [ ] Ran `npm exec -- ultracite fix`
+- [ ] Ran `npm run lint:fix && npm run format`
 
 ---
 

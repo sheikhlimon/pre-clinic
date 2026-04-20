@@ -24,7 +24,7 @@ export default function TrialCard({
       window.open(
         `https://clinicaltrials.gov/study/${nctId}`,
         "_blank",
-        "noopener"
+        "noopener",
       );
     }
   };

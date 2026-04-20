@@ -39,7 +39,7 @@ function processStreamChunk(
   chunk: string,
   onContent: (content: string) => void,
   onExtractedData?: (data: ExtractedData) => void,
-  onTrials?: (trials: TrialData[]) => void
+  onTrials?: (trials: TrialData[]) => void,
 ) {
   const lines = chunk.split("\n");
 
@@ -197,14 +197,14 @@ export function useChat({ api }: UseChatOptions) {
                   if (lastMsg?.id === assistantId) {
                     // eslint-disable-next-line no-console
                     console.log(
-                      "use-chat: Attaching trials to existing message"
+                      "use-chat: Attaching trials to existing message",
                     );
                     updated[updated.length - 1] = { ...messageState };
                   }
                   return updated;
                 });
               }
-            }
+            },
           );
         }
       } catch (error) {
@@ -223,14 +223,14 @@ export function useChat({ api }: UseChatOptions) {
         setIsStreaming(false);
       }
     },
-    [api, input, isLoading, messages]
+    [api, input, isLoading, messages],
   );
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setInput(e.target.value);
     },
-    []
+    [],
   );
 
   const clearChat = useCallback(() => {

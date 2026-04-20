@@ -43,7 +43,7 @@ export async function searchTrials(params: {
     "ClinicalTrials.gov search - Conditions:",
     queryTerms,
     "URL:",
-    url
+    url,
   );
 
   try {
@@ -58,10 +58,10 @@ export async function searchTrials(params: {
       // eslint-disable-next-line no-console
       console.error(
         `ClinicalTrials.gov API error ${response.status}:`,
-        errorBody
+        errorBody,
       );
       throw new Error(
-        `ClinicalTrials.gov API error: ${response.statusText} (${response.status})`
+        `ClinicalTrials.gov API error: ${response.statusText} (${response.status})`,
       );
     }
 
@@ -111,7 +111,7 @@ export async function searchTrials(params: {
     console.error("Error fetching from ClinicalTrials.gov:", error);
     // eslint-disable-next-line no-console
     console.warn(
-      "Returning mock data as fallback. API may be unavailable or query syntax unsupported."
+      "Returning mock data as fallback. API may be unavailable or query syntax unsupported.",
     );
     // Return mock trials as fallback
     return MOCK_TRIALS.slice(0, maxResults);
