@@ -1,18 +1,14 @@
 "use client";
 
 import { Activity, Baby, MapPin, Stethoscope } from "lucide-react";
-
-interface Condition {
-  name: string;
-  probability: number;
-}
+import type { Condition, ExtractionStatus } from "@/lib/types";
 
 interface ExtractionPanelProps {
   age?: number;
   symptoms: string[];
   location?: string;
   conditions: Condition[];
-  status: "gathering" | "extracting" | "searching" | "complete";
+  status: ExtractionStatus;
 }
 
 export default function ExtractionPanel({

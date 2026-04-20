@@ -74,3 +74,73 @@ Before committing:
 - [ ] No security vulnerabilities
 - [ ] Follows standards
 - [ ] Ran `npm exec -- ultracite fix`
+
+---
+
+## React Component Architecture
+
+### Component Decomposition
+
+- **Max ~100 lines per component**. If a component grows beyond this, extract sub-components.
+- **One responsibility per component**: state management OR layout OR display, not all three.
+- **Don't define components inside other components.** Extract to separate files.
+- **Keep render methods flat.** Use early returns for conditional rendering.
+
+### Shared Types
+
+- **Single source of truth** in `apps/web/src/lib/types.ts`.
+- All component interfaces import from `types.ts`, never redeclare.
+- Zod schemas in `schemas.ts` derive types; component props use those types.
+
+### DRY Principles
+
+- **No duplicate event handlers.** If two elements use the same handler pattern, extract a reusable component.
+- **No duplicate JSX blocks.** If you copy-paste JSX, extract a component.
+- **No duplicate style objects.** Use Tailwind classes or CSS custom properties, not inline styles.
+- **No duplicate types.** One interface, imported everywhere.
+
+### Design Tokens
+
+- **Never hardcode colors.** Use CSS custom properties (`var(--color-terracotta)`) or Tailwind theme values.
+- **Never use inline `style={{}}` for font sizes, line heights, or letter spacing.** Use Tailwind classes.
+- Defined tokens are in `apps/web/src/index.css` under `:root`.
+
+### File Organization
+
+```
+apps/web/src/
+├── app/                    # Next.js App Router pages
+│   ├── api/                # API routes
+│   └── layout.tsx
+├── components/
+│   ├── chat/               # Chat feature components
+│   │   ├── chat-interface.tsx    # Orchestrator only
+│   │   ├── chat-input.tsx        # Input + submit
+│   │   ├── chat-message.tsx      # Single message bubble
+│   │   ├── error-banner.tsx      # Error state display
+│   │   ├── extraction-panel.tsx  # Extracted data sidebar
+│   │   ├── info-item.tsx         # Icon + label row
+│   │   ├── condition-card.tsx    # Condition + probability
+│   │   ├── mobile-cards-panel.tsx # Mobile collapsible panel
+│   │   ├── prompt-card.tsx       # Quick-start prompt card
+│   │   └── trial-card.tsx        # Trial result card
+│   └── ui/                 # shadcn/ui primitives
+├── lib/
+│   ├── types.ts            # Shared TypeScript types
+│   ├── schemas.ts          # Zod validation schemas
+│   ├── use-chat.ts         # Chat hook
+│   ├── prompts.ts          # AI system prompt
+│   ├── clinical-trials-client.ts
+│   └── trial-ranking.ts
+└── index.css               # Design tokens + animations
+```
+
+### Dependencies
+
+- Next.js 16 (App Router)
+- React 19
+- shadcn/ui + Tailwind CSS
+- OpenRouter API (configurable model)
+- ClinicalTrials.gov V2 API
+- Zod (validation)
+- Lucide React (icons)

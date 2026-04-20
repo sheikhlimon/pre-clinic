@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ModeToggle } from "@/components/mode-toggle";
-import type { TrialData } from "@/lib/use-chat";
+import type { Condition, ExtractionStatus, TrialData } from "@/lib/types";
 import { useChat } from "@/lib/use-chat";
 import ChatMessage from "./chat-message";
 import ExtractionPanel from "./extraction-panel";
@@ -21,16 +21,15 @@ import TrialCard from "./trial-card";
 
 const JSON_REGEX = /```json\n([\s\S]*?)\n```/;
 
-// Function to remove JSON blocks from content
-function stripJsonFromContent(content: string): string {
-  return content.replace(JSON_REGEX, "").trim();
-}
-
-interface ExtractedData {
+interface ExtractionState {
   age?: number;
   symptoms: string[];
-  conditions: Array<{ name: string; probability: number }>;
-  status: "gathering" | "extracting" | "searching" | "complete";
+  conditions: Condition[];
+  status: ExtractionStatus;
+}
+
+function stripJsonFromContent(content: string): string {
+  return content.replace(JSON_REGEX, "").trim();
 }
 
 export default function ChatInterface() {
@@ -47,7 +46,7 @@ export default function ChatInterface() {
     api: "/api/chat",
   });
 
-  const [extraction, setExtraction] = useState<ExtractedData>({
+  const [extraction, setExtraction] = useState<ExtractionState>({
     symptoms: [],
     conditions: [],
     status: "gathering",

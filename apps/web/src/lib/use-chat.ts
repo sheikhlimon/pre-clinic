@@ -1,30 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-export interface ExtractedData {
-  age?: number;
-  symptoms: string[];
-  location?: string;
-  conditions: Array<{ name: string; probability: number }>;
-  readyToSearch?: boolean;
-}
+export type { ExtractedData, Message, TrialData } from "./types";
 
-export interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  trials?: TrialData[];
-  extractedData?: ExtractedData;
-}
+import type { ExtractedData, Message, TrialData } from "./types";
 
 export interface UseChatOptions {
   api: string;
-}
-
-export interface TrialData {
-  nctId: string;
-  title: string;
-  relevanceScore: number;
-  matchReasons: string[];
 }
 
 async function fetchChatResponse(api: string, messages: Message[]) {
