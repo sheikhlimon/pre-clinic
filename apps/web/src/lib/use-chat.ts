@@ -35,6 +35,19 @@ async function fetchChatResponse(api: string, messages: Message[]) {
   });
 
   if (!response.ok) {
+    try {
+      const body = await response.json();
+      if (body.error === "missing_api_key") {
+        throw new Error("MISSING_API_KEY");
+      }
+      if (body.error === "openrouter_error" && body.message) {
+        throw new Error(`OPENROUTER_ERROR:${body.message}`);
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        throw e;
+      }
+    }
     throw new Error(`API error: ${response.statusText}`);
   }
 
@@ -93,6 +106,7 @@ export function useChat({ api }: UseChatOptions) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Persist messages to localStorage
   useEffect(() => {
@@ -117,6 +131,7 @@ export function useChat({ api }: UseChatOptions) {
       setMessages((prev) => [...prev, userMessage]);
       setInput("");
       setIsLoading(true);
+      setError(null);
 
       try {
         const newMessages = [...messages, userMessage];
@@ -212,6 +227,14 @@ export function useChat({ api }: UseChatOptions) {
           );
         }
       } catch (error) {
+        if (error instanceof Error && error.message === "MISSING_API_KEY") {
+          setError("missing_api_key");
+        } else if (
+          error instanceof Error &&
+          error.message.startsWith("OPENROUTER_ERROR:")
+        ) {
+          setError(error.message.slice("OPENROUTER_ERROR:".length));
+        }
         // eslint-disable-next-line no-console
         console.error("Chat error:", error);
       } finally {
@@ -232,6 +255,7 @@ export function useChat({ api }: UseChatOptions) {
   const clearChat = useCallback(() => {
     setMessages([]);
     localStorage.removeItem("chat_history");
+    setError(null);
   }, []);
 
   return {
@@ -242,6 +266,7 @@ export function useChat({ api }: UseChatOptions) {
     handleSubmit,
     isLoading,
     isStreaming,
+    error,
     clearChat,
   };
 }

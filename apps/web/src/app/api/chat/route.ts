@@ -152,7 +152,13 @@ export async function POST(req: NextRequest) {
   const { messages } = (await req.json()) as { messages: Message[] };
 
   if (!process.env.OPENROUTER_API_KEY) {
-    return new Response("OpenRouter API key not configured", { status: 500 });
+    return Response.json(
+      {
+        error: "missing_api_key",
+        message: "OpenRouter API key not configured",
+      },
+      { status: 503 }
+    );
   }
 
   try {
@@ -166,7 +172,7 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         },
         body: JSON.stringify({
-          model: "claude-3.5-sonnet",
+          model: process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
           max_tokens: 1000,
           temperature: 0.7,
@@ -176,10 +182,23 @@ export async function POST(req: NextRequest) {
     );
 
     if (!response.ok) {
-      const error = await response.text();
+      const errorText = await response.text();
       // eslint-disable-next-line no-console
-      console.error("OpenRouter error:", error);
-      return new Response("API error", { status: response.status });
+      console.error("OpenRouter error:", errorText);
+      try {
+        const parsed = JSON.parse(errorText);
+        const message =
+          parsed?.error?.message || parsed?.error?.code || "Unknown API error";
+        return Response.json(
+          { error: "openrouter_error", message },
+          { status: response.status }
+        );
+      } catch {
+        return Response.json(
+          { error: "openrouter_error", message: errorText.slice(0, 200) },
+          { status: response.status }
+        );
+      }
     }
 
     // Stream response
