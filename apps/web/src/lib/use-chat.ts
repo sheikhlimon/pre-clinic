@@ -96,21 +96,19 @@ export function useChat({ api }: UseChatOptions) {
     }
   }, [messages]);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!input.trim() || isLoading) {
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!text.trim() || isLoading) {
         return;
       }
 
       const userMessage: Message = {
         id: Date.now().toString(),
         role: "user",
-        content: input,
+        content: text.trim(),
       };
 
       setMessages((prev) => [...prev, userMessage]);
-      setInput("");
       setIsLoading(true);
       setError(null);
 
@@ -128,7 +126,6 @@ export function useChat({ api }: UseChatOptions) {
         let messageAdded = false;
         let streamingStarted = false;
 
-        // Track message state locally to avoid race conditions
         let messageState: Message = {
           id: assistantId,
           role: "assistant",
@@ -147,17 +144,14 @@ export function useChat({ api }: UseChatOptions) {
             (content) => {
               assistantContent += content;
 
-              // Hide thinking indicator when streaming starts
               if (!streamingStarted && content) {
                 streamingStarted = true;
                 setIsStreaming(true);
               }
 
-              // Update messageState with new content
               messageState = { ...messageState, content: assistantContent };
 
               if (messageAdded) {
-                // Update existing message with new content
                 setMessages((prev) => {
                   const updated = [...prev];
                   const lastMsg = updated.at(-1);
@@ -223,7 +217,17 @@ export function useChat({ api }: UseChatOptions) {
         setIsStreaming(false);
       }
     },
-    [api, input, isLoading, messages],
+    [api, isLoading, messages],
+  );
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      const text = input;
+      setInput("");
+      await sendMessage(text);
+    },
+    [input, sendMessage],
   );
 
   const handleInputChange = useCallback(
@@ -245,6 +249,7 @@ export function useChat({ api }: UseChatOptions) {
     setInput,
     handleInputChange,
     handleSubmit,
+    sendMessage,
     isLoading,
     isStreaming,
     error,
