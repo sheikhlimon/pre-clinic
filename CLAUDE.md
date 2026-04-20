@@ -1,41 +1,30 @@
-# Bio-Luxe Design System
+# PreClinic
 
-## Design Tokens
-- Forest Green: `#1A2F23`
-- Sand: `#F5F2ED`
+Symptom-to-trial oncology matcher. Next.js 16 + React 19 + Tailwind + shadcn/ui.
 
-## Directive (CRITICAL)
-**ALWAYS** read `docs/context/active_context.md` before taking action.
+## Working Rules
 
-## Agent Workflow (from .claude/AGENTS.md)
+- **EXPLAIN FIRST** — before writing code, explain WHAT and WHY
+- **ONE FILE AT A TIME** — never implement multiple files in one response
+- **TEACH** — explain architecture decisions, common mistakes, scaling concerns
+- **COMMIT AFTER EACH FEATURE** — one logical unit of work
+- **ANSWER QUESTIONS** — pause and explain when asked
 
-### Before ANY code change:
-1. Read `docs/context/active_context.md`
-2. Update "Current Task" section
-3. Note blocking dependencies
+## Code Standards
 
-### For multi-step work:
-- Use `TaskCreate` to track steps
-- Mark `in_progress` when starting
-- Mark `completed` when done
+- **Lint**: `npm run lint` | **Format**: `npm run format` | **Build**: `npm run build`
+- Pre-commit hook runs eslint --fix + prettier --write automatically
+- Commit format: `feat: concise description` (only important details)
+- Shared types from `lib/types.ts` — never redeclare
+- No hardcoded colors — use CSS custom properties or Tailwind theme
+- Comments explain WHY not WHAT
+- Components ~100 lines max, extract when bloated
 
-### Implementation:
-- **ONE commit per logical change** (no one-shotting)
-- Run `npm exec -- ultracite fix` before each commit
-- Commit format: `[type] brief description`
+## Design System
 
-### After completing:
-- Update `docs/context/progress.md` (check off items)
-- Log AI interactions to "AI Chat Log" in active_context.md
-
-### Code Review Checklist:
-- [ ] Understand what code does
-- [ ] Reviewed changes
-- [ ] Tested manually
-- [ ] No security vulnerabilities
-- [ ] Follows standards (ultracite fix passed)
-
-## Project Context
-Symptom-to-Trial matcher for healthcare hackathon. Next.js 16 + React 19 + shadcn/ui.
-
-See `.claude/CLAUDE.md` for coding standards.
+- **Terracotta**: `var(--color-terracotta)` — primary accent
+- **Sage**: `var(--color-sage)` — secondary
+- **Indigo**: `var(--color-indigo)` — text/headers
+- **Cream**: `var(--color-cream)` — backgrounds
+- **Typography**: Fraunces (display/serif), DM Sans (body/sans)
+- No generic AI aesthetics — asymmetric layouts, personality, warm editorial feel
