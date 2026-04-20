@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 1000,
+          max_tokens: 500,
           temperature: 0.7,
           stream: true,
         }),
