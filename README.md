@@ -29,8 +29,9 @@ PreClinic uses natural language processing to understand patient symptoms and me
 2. **Add your API key and model to `apps/web/.env`**
    ```
    OPENROUTER_API_KEY=sk-or-v1-your-key-here
-   OPENROUTER_MODEL=openrouter/free
+   OPENROUTER_MODEL=minimax/minimax-m2.5:free
    ```
+   Pick any model from [openrouter.ai/models](https://openrouter.ai/models) — free ones have the `:free` suffix.
 
 3. **Install dependencies**
    ```bash
