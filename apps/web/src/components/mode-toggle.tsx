@@ -18,7 +18,7 @@ export function ModeToggle() {
       type="button"
     >
       {theme === "dark" ? (
-        <Sun className="h-5 w-5 rotate-0 scale-100 text-[#E07856] transition-transform duration-300" />
+        <Sun className="h-5 w-5 rotate-0 scale-100 text-[var(--color-terracotta)] transition-transform duration-300" />
       ) : (
         <Moon className="h-5 w-5 rotate-0 scale-100 text-slate-600 transition-transform duration-300" />
       )}

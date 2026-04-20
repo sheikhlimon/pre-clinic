@@ -4,25 +4,24 @@ import { Activity, Baby, Stethoscope } from "lucide-react";
 
 export default function ExtractionSkeleton() {
   return (
-    <div className="my-4 rounded-2xl border border-[#A8D5BA]/30 bg-gradient-to-br from-[#A8D5BA]/10 to-[#E8F4F8]/20 p-4 shadow-[#A8D5BA]/10 shadow-lg dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
-      <p className="mb-4 flex items-center gap-2 font-semibold text-[#2C3E50] text-xs uppercase dark:text-slate-300">
-        <Stethoscope className="h-3.5 w-3.5 text-[#E07856]" />I understood:
+    <div className="my-4 rounded-2xl border border-[var(--color-sage)]/30 bg-gradient-to-br from-[var(--color-sage)]/10 to-[#E8F4F8]/20 p-4 shadow-lg shadow-[var(--color-sage)]/10 dark:border-slate-700 dark:from-slate-800 dark:to-slate-900">
+      <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase text-[var(--color-indigo)] dark:text-slate-300">
+        <Stethoscope className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
+        I understood:
       </p>
 
       <div className="space-y-3 text-sm">
-        {/* Age Skeleton */}
         <div className="flex items-center gap-2">
-          <Baby className="h-4 w-4 text-[#E07856]" />
+          <Baby className="h-4 w-4 text-[var(--color-terracotta)]" />
           <div className="flex-1">
             <div className="h-4 w-16 animate-pulse rounded bg-slate-200 dark:bg-slate-700" />
           </div>
         </div>
 
-        {/* Symptoms Skeleton */}
         <div className="flex items-start gap-2">
-          <Activity className="mt-0.5 h-4 w-4 text-[#E07856]" />
+          <Activity className="mt-0.5 h-4 w-4 text-[var(--color-terracotta)]" />
           <div className="w-full">
-            <p className="mb-1 font-medium text-[#2C3E50] dark:text-slate-300">
+            <p className="mb-1 font-medium text-[var(--color-indigo)] dark:text-slate-300">
               Symptoms:
             </p>
             <div className="space-y-1.5">
@@ -32,9 +31,8 @@ export default function ExtractionSkeleton() {
           </div>
         </div>
 
-        {/* Conditions Skeleton */}
         <div>
-          <p className="mb-2 font-medium text-[#2C3E50] dark:text-slate-300">
+          <p className="mb-2 font-medium text-[var(--color-indigo)] dark:text-slate-300">
             Possible conditions:
           </p>
           <div className="mb-3 space-y-1.5">
@@ -50,9 +48,8 @@ export default function ExtractionSkeleton() {
           </div>
         </div>
 
-        {/* Status text */}
-        <p className="pt-2 text-slate-600 text-xs italic dark:text-slate-400">
-          ⏳ Understanding your symptoms...
+        <p className="pt-2 text-xs italic text-slate-600 dark:text-slate-400">
+          Understanding your symptoms...
         </p>
       </div>
     </div>

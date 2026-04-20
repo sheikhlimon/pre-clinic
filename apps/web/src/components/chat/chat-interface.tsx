@@ -77,7 +77,6 @@ export default function ChatInterface() {
   }, [messages]);
 
   // Auto-scroll on new messages
-  // biome-ignore lint/correctness/useExhaustiveDependencies: messages triggers scroll
   useEffect(() => {
     if (!isEmptyState) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
