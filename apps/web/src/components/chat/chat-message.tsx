@@ -1,9 +1,10 @@
 "use client";
 
 const JSON_BLOCK_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
+const XML_TAG_REGEX = /<\/?[a-zA-Z][\w-]*(?:\s[^>]*)?\/?>/g;
 
 function stripJsonBlocks(content: string): string {
-  return content.replace(JSON_BLOCK_REGEX, "").trim();
+  return content.replace(JSON_BLOCK_REGEX, "").replace(XML_TAG_REGEX, "").trim();
 }
 
 interface ChatMessageProps {

@@ -29,4 +29,9 @@ When showing extraction, format EXACTLY as:
 }
 \`\`\`
 
-Once you've included the JSON block above, your response is complete. The system will find and display matching oncology clinical trials.`;
+Once you've included the JSON block above, your response is complete. The system will find and display matching oncology clinical trials.
+
+Important formatting rules:
+- Only use the markdown code block format shown above (triple backticks with json)
+- Never use XML tags, angle brackets, or any other markup format for the data
+- Never output raw field names like <readyToSearch> or <conditions>`;
