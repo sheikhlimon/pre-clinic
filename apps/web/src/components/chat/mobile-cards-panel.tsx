@@ -27,26 +27,26 @@ export default function MobileCardsPanel({
   return (
     <div className="lg:hidden">
       <button
-        className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm transition-all hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800"
+        className="flex w-full items-center justify-between rounded-2xl border border-[var(--color-cream-dark)] bg-white/70 px-4 py-3 backdrop-blur-sm transition-all hover:bg-white dark:border-[#2a2520] dark:bg-[#1a1714]/70 dark:hover:bg-[#1a1714]"
         onClick={() => setExpanded(!expanded)}
         type="button"
       >
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-600 text-xs uppercase dark:text-slate-400">
+          <span className="font-display text-xs font-medium uppercase tracking-widest text-slate-500 dark:text-slate-400">
             {trials.length > 0
               ? `${trials.length} trials found`
               : "Extracted info"}
           </span>
           {extraction.symptoms.length > 0 && (
             <span className="rounded-full bg-[var(--color-terracotta)] px-2 py-0.5 text-white text-xs">
-              {extraction.symptoms.length} symptoms
+              {extraction.symptoms.length}
             </span>
           )}
         </div>
         {expanded ? (
-          <ChevronUp className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+          <ChevronUp className="h-4 w-4 text-slate-400" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+          <ChevronDown className="h-4 w-4 text-slate-400" />
         )}
       </button>
 

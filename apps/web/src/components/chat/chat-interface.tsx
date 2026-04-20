@@ -37,6 +37,7 @@ export default function ChatInterface() {
     setInput,
     handleInputChange,
     handleSubmit,
+    sendMessage,
     isLoading,
     error,
     clearChat,
@@ -55,7 +56,6 @@ export default function ChatInterface() {
     extraction.symptoms.length > 0 &&
     (extraction.status === "extracting" || extraction.status === "complete");
 
-  // Sync extraction data and trials from assistant messages
   useEffect(() => {
     const lastMessage = messages.at(-1);
     if (!lastMessage || lastMessage.role !== "assistant") return;
@@ -76,14 +76,12 @@ export default function ChatInterface() {
     }
   }, [messages]);
 
-  // Auto-scroll on new messages
   useEffect(() => {
     if (!isEmptyState) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isEmptyState]);
 
-  // Persist chat to localStorage
   useEffect(() => {
     if (messages.length > 0) {
       localStorage.setItem("chat_history", JSON.stringify(messages));
@@ -98,82 +96,86 @@ export default function ChatInterface() {
 
   const handlePromptSelect = useCallback(
     (text: string) => {
-      setInput(text);
-      setTimeout(
-        () => handleSubmit({ preventDefault: () => {} } as React.FormEvent),
-        10,
-      );
+      sendMessage(text);
     },
-    [setInput, handleSubmit],
+    [sendMessage],
   );
 
   return (
-    <div className="flex h-full w-full flex-col">
-      {/* Navbar + Hero */}
+    <div className="flex h-full w-full flex-col overflow-hidden">
+      {/* Navbar */}
       <div
-        className={`flex-shrink-0 overflow-hidden border-slate-200/50 border-b bg-gradient-to-b from-white to-white/80 backdrop-blur-sm transition-all duration-300 md:px-8 dark:border-slate-800/50 dark:from-slate-950 dark:to-slate-950/80 ${
-          isEmptyState ? "px-6 py-6" : "px-6 py-3"
+        className={`flex-shrink-0 border-b border-[var(--color-cream-dark)] bg-[var(--color-cream)]/80 backdrop-blur-md transition-all duration-500 dark:border-[#2a2520] dark:bg-[#1a1714]/80 ${
+          isEmptyState ? "px-6 py-4 md:px-10" : "px-6 py-3 md:px-10"
         }`}
-        style={{ maxHeight: isEmptyState ? "400px" : "auto" }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-terracotta)] to-[var(--color-terracotta-dark)] font-bold text-white shadow-lg">
-              <Activity className="h-5 w-5" />
-              <div className="absolute -right-0.5 -bottom-0.5 flex h-3 w-3 items-center justify-center rounded-full bg-[var(--color-sage)] font-bold text-[var(--color-indigo)] text-xs">
-                <Search className="h-2 w-2" />
-              </div>
+            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-terracotta)] shadow-md shadow-[var(--color-terracotta)]/20">
+              <Activity className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-[var(--color-indigo)] text-lg tracking-tight dark:text-white">
-              PreClinic
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-display text-[var(--color-indigo)] text-lg font-semibold tracking-tight dark:text-[#e8e0d4]">
+                PreClinic
+              </span>
+              <span className="hidden text-slate-400 text-xs sm:inline dark:text-slate-500">
+                clinical trial finder
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {!isEmptyState && (
               <button
-                className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-slate-600 text-sm transition-colors hover:bg-slate-100 sm:px-3 dark:text-slate-400 dark:hover:bg-slate-800"
+                className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-slate-500 text-sm transition-colors hover:bg-black/5 dark:text-slate-400 dark:hover:bg-white/5"
                 onClick={handleClear}
                 type="button"
               >
-                <RotateCcw className="h-4 w-4" />
-                <span className="hidden sm:inline">Clear chat</span>
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">New search</span>
               </button>
             )}
             <a
-              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-black/5 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-white/5 dark:hover:text-slate-300"
               href="https://github.com/sheikhlimon/pre-clinic"
               rel="noopener noreferrer"
               target="_blank"
             >
-              <Github className="h-5 w-5" />
+              <Github className="h-4 w-4" />
             </a>
             <ModeToggle />
           </div>
         </div>
 
+        {/* Hero — editorial layout */}
         {isEmptyState && (
-          <div className="mt-8 text-center opacity-100 transition-opacity duration-300">
-            <h1 className="font-bold text-[var(--color-indigo)] tracking-tight dark:text-white">
-              <span className="block text-3xl md:text-4xl">
-                Find Cancer Clinical
+          <div className="mx-auto mt-6 max-w-2xl pb-4 text-left md:mt-8 md:text-center lg:mt-12">
+            <p className="mb-2 text-[var(--color-terracotta)] text-xs font-medium uppercase tracking-widest animate-fadeIn md:text-sm dark:text-[var(--color-terracotta-light)]">
+              Oncology trial matching
+            </p>
+            <h1 className="font-display text-[var(--color-indigo)] leading-[1.1] tracking-tight dark:text-[#e8e0d4] animate-slideUpFade">
+              <span className="block text-3xl md:text-4xl lg:text-5xl">
+                Find the trial
               </span>
-              <span className="mt-2 block bg-gradient-to-r from-[var(--color-terracotta)] to-[var(--color-coral)] bg-clip-text text-4xl text-transparent md:text-5xl">
-                Trials That Match You
+              <span className="block text-3xl md:text-4xl lg:text-5xl">
+                that fits{" "}
+                <em className="not-italic text-[var(--color-terracotta)] dark:text-[var(--color-terracotta-light)]">
+                  your story
+                </em>
               </span>
             </h1>
-            <p className="mt-4 text-base text-slate-600 md:text-lg dark:text-slate-400">
-              AI-powered oncology trial matching based on your symptoms and
-              diagnosis
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-500 md:mt-4 md:text-base animate-slideUpFade stagger-2 dark:text-slate-400">
+              Describe your symptoms or diagnosis. Our AI matches you with
+              active oncology clinical trials from ClinicalTrials.gov.
             </p>
           </div>
         )}
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 gap-4 overflow-hidden px-4 py-4 md:px-6">
+      <div className="flex min-h-0 flex-1 gap-5 overflow-hidden px-4 py-4 md:px-6">
         {/* LEFT: Extraction Panel */}
         {hasExtraction && (
-          <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block">
+          <div className="hidden w-72 flex-shrink-0 overflow-y-auto lg:block">
             <div className="sticky top-0">
               <ExtractionPanel
                 age={extraction.age}
@@ -186,21 +188,22 @@ export default function ChatInterface() {
         )}
 
         {/* CENTER: Chat */}
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {isEmptyState ? (
             <div className="flex flex-1 items-center justify-center px-4">
-              <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
-                {PROMPTS.map((text) => (
+              <div className="mx-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+                {PROMPTS.map((text, i) => (
                   <PromptCard
                     key={text}
                     onSelect={handlePromptSelect}
                     text={text}
+                    index={i}
                   />
                 ))}
               </div>
             </div>
           ) : (
-            <div className="flex flex-1 overflow-y-auto pb-4">
+            <div className="flex flex-1 overflow-y-auto pb-4 scrollbar-thin">
               <div className="mx-auto w-full max-w-3xl space-y-4 py-4">
                 {messages.map((message) => (
                   <ChatMessage
@@ -217,9 +220,9 @@ export default function ChatInterface() {
 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 dark:bg-slate-800">
+                    <div className="flex items-center gap-2 rounded-2xl bg-white/80 px-4 py-3 shadow-sm dark:bg-[#1e1b18]/80">
                       <Loader2 className="h-4 w-4 animate-spin text-[var(--color-terracotta)]" />
-                      <p className="text-slate-600 text-sm dark:text-slate-400">
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
                         Thinking...
                       </p>
                     </div>
@@ -247,9 +250,9 @@ export default function ChatInterface() {
 
         {/* RIGHT: Trial Cards */}
         {trials.length > 0 && (
-          <div className="hidden w-96 flex-shrink-0 overflow-y-auto lg:block">
+          <div className="hidden w-80 flex-shrink-0 overflow-y-auto lg:block scrollbar-thin">
             <div className="space-y-3">
-              <p className="sticky top-0 bg-gradient-to-b from-white to-white/80 py-2 font-semibold text-[var(--color-indigo)] text-xs uppercase dark:from-slate-950 dark:to-slate-950/80 dark:text-slate-300">
+              <p className="sticky top-0 bg-[var(--color-cream)]/90 py-2 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-terracotta)] backdrop-blur-sm dark:bg-[#141210]/90">
                 Matching trials
               </p>
               {trials.map((trial) => (

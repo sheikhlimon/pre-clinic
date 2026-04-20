@@ -22,16 +22,14 @@ export default function ChatMessage({ content, role }: ChatMessageProps) {
       className={`flex ${isUser ? "justify-end" : "justify-start"} animate-slideUpFade`}
     >
       <div
-        className={`max-w-[85%] rounded-xl px-4 py-2.5 text-sm transition-shadow duration-200 ${
+        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed transition-shadow duration-200 ${
           isUser
-            ? "bg-gradient-to-br from-[var(--color-terracotta)] to-[var(--color-terracotta-dark)] text-white shadow-[var(--shadow-terracotta-md)]"
-            : "border border-slate-200/50 bg-white text-slate-800 shadow-[var(--shadow-sm)] dark:border-slate-700/50 dark:bg-slate-900 dark:text-slate-100"
+            ? "bg-[var(--color-indigo)] text-white shadow-md shadow-[var(--color-indigo)]/10 dark:bg-[#2a2520] dark:text-[#e8e0d4]"
+            : "border border-[var(--color-cream-dark)] bg-white/80 text-slate-700 shadow-sm dark:border-[#2a2520] dark:bg-[#1a1714]/80 dark:text-slate-200"
         }`}
       >
         {displayContent ? (
-          <p className="whitespace-pre-wrap leading-relaxed">
-            {displayContent}
-          </p>
+          <p className="whitespace-pre-wrap">{displayContent}</p>
         ) : (
           <p className="italic text-slate-400 dark:text-slate-500">
             No content to display

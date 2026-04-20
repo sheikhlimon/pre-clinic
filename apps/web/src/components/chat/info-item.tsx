@@ -16,14 +16,14 @@ export default function InfoItem({
   iconBg = "bg-[var(--color-terracotta)]/10",
 }: InfoItemProps) {
   return (
-    <div className="flex items-center gap-2 rounded-lg bg-white/50 px-3 py-2 dark:bg-slate-800/50">
+    <div className="flex items-center gap-2.5 rounded-xl bg-[var(--color-cream)]/60 px-3 py-2 dark:bg-[#1a1714]/60">
       <div
-        className={`flex h-7 w-7 items-center justify-center rounded-full ${iconBg}`}
+        className={`flex h-6 w-6 items-center justify-center rounded-md ${iconBg}`}
       >
         {icon}
       </div>
-      <p className="text-slate-800 text-sm dark:text-slate-200">
-        {label}: <span className="font-semibold">{value}</span>
+      <p className="text-sm text-slate-600 dark:text-slate-300">
+        {label}: <span className="font-medium text-slate-800 dark:text-slate-100">{value}</span>
       </p>
     </div>
   );

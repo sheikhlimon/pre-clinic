@@ -13,14 +13,14 @@ export function ModeToggle() {
   return (
     <button
       aria-label="Toggle theme"
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200/50 bg-transparent transition-all duration-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-all duration-200 hover:bg-black/5 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-white/5 dark:hover:text-slate-300"
       onClick={toggleTheme}
       type="button"
     >
       {theme === "dark" ? (
-        <Sun className="h-5 w-5 rotate-0 scale-100 text-[var(--color-terracotta)] transition-transform duration-300" />
+        <Sun className="h-4 w-4 transition-transform duration-300" />
       ) : (
-        <Moon className="h-5 w-5 rotate-0 scale-100 text-slate-600 transition-transform duration-300" />
+        <Moon className="h-4 w-4 transition-transform duration-300" />
       )}
     </button>
   );

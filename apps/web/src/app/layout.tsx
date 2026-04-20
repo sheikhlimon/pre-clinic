@@ -1,18 +1,21 @@
 import type { Metadata, Viewport } from "next";
-
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 
 import "../index.css";
 import Providers from "@/components/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fraunces = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -37,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${fraunces.variable} ${dmSans.variable} antialiased`}
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>
