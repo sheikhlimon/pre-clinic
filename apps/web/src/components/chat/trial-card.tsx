@@ -37,8 +37,8 @@ export default function TrialCard({
   };
 
   return (
-    <div className="group relative my-2 overflow-hidden rounded-2xl border border-[var(--color-cream-dark)] bg-white/70 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-lg dark:border-[#2a2520] dark:bg-[#1a1714]/70 dark:hover:bg-[#1a1714]">
-      <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-terracotta)]/[0.02] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <div className="group relative my-2 rounded-2xl border border-[var(--color-cream-dark)] bg-white/70 p-5 backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-lg dark:border-[#2a2520] dark:bg-[#1a1714]/70 dark:hover:bg-[#1a1714]">
+      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-[var(--color-terracotta)]/[0.02] to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
       <div className="relative">
         <div className="mb-3 flex items-start gap-3">
@@ -79,7 +79,7 @@ export default function TrialCard({
         </div>
 
         <button
-          className="group/btn focus-ring relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[var(--color-indigo)] px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[var(--color-indigo)]/90 hover:shadow-md active:scale-[0.98] dark:bg-[#2a2520] dark:text-[#e8e0d4]"
+          className="group/btn focus-ring relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[var(--color-indigo)] px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[var(--color-indigo)]/90 hover:shadow-md active:scale-[0.98] dark:bg-[#2a2520] dark:text-[#e8e0d4] cursor-pointer"
           onClick={handleClick}
           type="button"
         >

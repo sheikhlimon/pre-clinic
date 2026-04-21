@@ -11,6 +11,7 @@ interface ExtractionPanelProps {
   location?: string;
   conditions: Condition[];
   status: ExtractionStatus;
+  rounded?: boolean;
 }
 
 const STATUS_TEXT: Record<ExtractionStatus, string> = {
@@ -33,11 +34,12 @@ export default function ExtractionPanel({
   location,
   conditions,
   status,
+  rounded = false,
 }: ExtractionPanelProps) {
   const isPulsing = status === "extracting" || status === "searching";
 
   return (
-    <div className="my-2 overflow-hidden rounded-2xl border border-[var(--color-cream-dark)] bg-white/70 p-4 shadow-sm backdrop-blur-sm transition-all duration-500 hover:shadow-md dark:border-[#2a2520] dark:bg-[#1a1714]/70">
+    <div className={`bg-white/70 p-5 backdrop-blur-sm dark:bg-[#1a1714]/70 ${rounded ? "rounded-2xl border border-[var(--color-cream-dark)] dark:border-[#2a2520]" : ""}`}>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div

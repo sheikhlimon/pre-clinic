@@ -56,6 +56,7 @@ export default function MobileCardsPanel({
             <ExtractionPanel
               age={extraction.age}
               conditions={extraction.conditions}
+              rounded
               status={trials.length > 0 ? "complete" : extraction.status}
               symptoms={extraction.symptoms}
             />
