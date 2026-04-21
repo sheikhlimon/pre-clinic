@@ -29,7 +29,7 @@ PreClinic uses natural language processing to understand patient symptoms and me
 2. **Add your API key and model to `apps/web/.env`**
    ```
    OPENROUTER_API_KEY=sk-or-v1-your-key-here
-   OPENROUTER_MODEL=minimax/minimax-m2.5:free
+   OPENROUTER_MODEL=z-ai/glm-4.5-air:free
    ```
    Pick any model from [openrouter.ai/models](https://openrouter.ai/models) — free ones have the `:free` suffix.
 
@@ -72,7 +72,7 @@ Click on trial cards to view full details on ClinicalTrials.gov, including eligi
 
 - **Framework**: Next.js 16 (App Router) + React 19
 - **UI Library**: shadcn/ui + Tailwind CSS
-- **AI Model**: Configurable via OpenRouter (defaults to free model router)
+- **AI Model**: OpenRouter API with SSE streaming (defaults to GLM 4.5 Air free)
 - **Data Source**: ClinicalTrials.gov V2 API (free, no authentication)
 - **State Management**: React hooks + localStorage
 - **Type Safety**: TypeScript
