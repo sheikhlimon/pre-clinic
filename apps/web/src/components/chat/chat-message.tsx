@@ -22,35 +22,36 @@ export function cleanStreamContent(content: string): string {
 interface ChatMessageProps {
   content: string;
   role: "user" | "assistant";
+  isStreaming?: boolean;
 }
 
 export default function ChatMessage({
   content,
   role,
+  isStreaming = false,
 }: ChatMessageProps) {
   const isUser = role === "user";
   const displayContent = isUser ? content : cleanStreamContent(content);
 
-  if (!(isUser || displayContent)) {
-    // Show typing dots for empty assistant messages (LLM is thinking)
-    if (!isUser) {
-      return (
-        <div className="flex justify-start animate-slideUpFade">
-          <div className="max-w-[85%] rounded-2xl border border-[var(--color-cream-dark)] bg-white/80 px-4 py-2.5 text-sm shadow-sm dark:border-[#2a2520] dark:bg-[#1a1714]/80">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:0ms]" />
-                <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:150ms]" />
-                <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:300ms]" />
-              </div>
-              <span className="text-slate-400 dark:text-slate-500">Thinking...</span>
+  // Only show typing dots while actively streaming with no visible content yet
+  if (!isUser && isStreaming && !displayContent) {
+    return (
+      <div className="flex justify-start animate-slideUpFade">
+        <div className="max-w-[85%] rounded-2xl border border-[var(--color-cream-dark)] bg-white/80 px-4 py-2.5 text-sm shadow-sm dark:border-[#2a2520] dark:bg-[#1a1714]/80">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:0ms]" />
+              <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:150ms]" />
+              <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:300ms]" />
             </div>
+            <span className="text-slate-400 dark:text-slate-500">Thinking...</span>
           </div>
         </div>
-      );
-    }
-    return null;
+      </div>
+    );
   }
+
+  if (!isUser && !displayContent) return null;
 
   return (
     <div

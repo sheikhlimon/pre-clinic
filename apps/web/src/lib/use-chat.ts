@@ -46,6 +46,7 @@ export function useChat({ api }: UseChatOptions) {
   });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearchingTrials, setIsSearchingTrials] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Refs for the typing animation — bypasses React batching
@@ -88,6 +89,7 @@ export function useChat({ api }: UseChatOptions) {
 
       setMessages((prev) => [...prev, userMessage, { id: assistantId, role: "assistant", content: "", isNew: true }]);
       setIsLoading(true);
+      setIsSearchingTrials(false);
       setError(null);
 
       // Start the animation ticker — it always chases targetRef
@@ -159,7 +161,11 @@ export function useChat({ api }: UseChatOptions) {
                   targetRef.current = cleanStreamContent(rawContent);
                 }
                 if (data.extractedData) metadataRef.current.extractedData = data.extractedData;
-                if (data.trials) metadataRef.current.trials = data.trials;
+                if (data.searchingTrials) setIsSearchingTrials(true);
+                if (data.trials) {
+                  metadataRef.current.trials = data.trials;
+                  setIsSearchingTrials(false);
+                }
               } catch { /* skip */ }
             }
           }

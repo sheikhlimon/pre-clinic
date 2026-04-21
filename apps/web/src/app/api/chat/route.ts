@@ -37,15 +37,6 @@ async function handleExtractionAndSearch(
     const parsed = JSON.parse(jsonStr);
     const extraction = ExtractionSchema.parse(parsed);
 
-    // eslint-disable-next-line no-console
-    console.log("Extraction parsed:", {
-      readyToSearch: extraction.readyToSearch,
-      conditions: extraction.conditions.length,
-      symptoms: extraction.symptoms.length,
-      age: extraction.age,
-      location: extraction.location,
-    });
-
     // Send extraction data to frontend for extraction panel display
     await writer.write(
       encoder.encode(
@@ -54,13 +45,13 @@ async function handleExtractionAndSearch(
     );
 
     if (!extraction.readyToSearch) {
-      // eslint-disable-next-line no-console
-      console.log("Not ready to search yet - readyToSearch is false");
       return;
     }
 
-    // eslint-disable-next-line no-console
-    console.log("CHAT ROUTE: Starting search for trials...");
+    // Notify frontend that trial search has started
+    await writer.write(
+      encoder.encode(`data: ${JSON.stringify({ searchingTrials: true })}\n\n`),
+    );
 
     // Search for trials internally
     const searchResults = await searchTrials({
@@ -69,23 +60,12 @@ async function handleExtractionAndSearch(
       location: extraction.location,
     });
 
-    // eslint-disable-next-line no-console
-    console.log("Search results:", searchResults.length);
-
     if (searchResults.length === 0) {
-      // eslint-disable-next-line no-console
-      console.log("No search results found");
       return;
     }
 
-    // eslint-disable-next-line no-console
-    console.log("Ranking trials...");
-
     // Rank trials
     const rankedTrials = rankTrials(searchResults, extraction);
-
-    // eslint-disable-next-line no-console
-    console.log("Ranked trials:", rankedTrials.length);
 
     // Format and send trials to frontend
     const trials: TrialResult[] = rankedTrials.map((t) => ({
@@ -95,26 +75,11 @@ async function handleExtractionAndSearch(
       matchReasons: t.matchReasons,
     }));
 
-    // eslint-disable-next-line no-console
-    console.log("Sending trials to frontend:", trials.length);
-
-    try {
-      await writer.write(
-        encoder.encode(`data: ${JSON.stringify({ trials })}\n\n`),
-      );
-      // eslint-disable-next-line no-console
-      console.log("Trials sent successfully");
-    } catch (sendError) {
-      // eslint-disable-next-line no-console
-      console.error("Error sending trials:", sendError);
-    }
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error("Extraction/search error:", e);
-    if (e instanceof Error) {
-      // eslint-disable-next-line no-console
-      console.error("Error details:", e.message);
-    }
+    await writer.write(
+      encoder.encode(`data: ${JSON.stringify({ trials })}\n\n`),
+    );
+  } catch {
+    // Extraction parsing or trial search failed silently
   }
 }
 
@@ -172,7 +137,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: process.env.OPENROUTER_MODEL || "openrouter/free",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 500,
+          max_tokens: 1000,
           temperature: 0.7,
           stream: true,
           reasoning: { enabled: false },
@@ -182,8 +147,6 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      // eslint-disable-next-line no-console
-      console.error("OpenRouter error:", errorText);
       try {
         const parsed = JSON.parse(errorText);
         const message =
