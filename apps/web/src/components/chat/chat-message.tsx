@@ -16,50 +16,40 @@ function stripJsonBlocks(content: string): string {
 interface ChatMessageProps {
   content: string;
   role: "user" | "assistant";
+  isNew?: boolean;
 }
 
-export default function ChatMessage({ content, role }: ChatMessageProps) {
+export default function ChatMessage({
+  content,
+  role,
+  isNew = false,
+}: ChatMessageProps) {
   const isUser = role === "user";
   const displayContent = isUser ? content : stripJsonBlocks(content);
 
-  const [visibleLength, setVisibleLength] = useState(displayContent.length);
-  const prevLengthRef = useRef(0);
-  const isInitialMount = useRef(true);
+  const [visibleLength, setVisibleLength] = useState(
+    isUser || !isNew ? displayContent.length : 0,
+  );
   const rafRef = useRef(0);
 
   useEffect(() => {
-    if (isUser || !displayContent) return;
+    if (isUser || !isNew || !displayContent) return;
 
-    // On first render: show full content (restored from localStorage)
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      prevLengthRef.current = displayContent.length;
-      setVisibleLength(displayContent.length);
-      return;
-    }
+    const target = displayContent.length;
 
-    // Content grew = new response arrived → animate from 0
-    if (displayContent.length > prevLengthRef.current) {
-      setVisibleLength(0);
-      prevLengthRef.current = displayContent.length;
+    const tick = () => {
+      setVisibleLength((prev) => {
+        const next = prev + CHARS_PER_FRAME;
+        if (next >= target) return target;
+        rafRef.current = requestAnimationFrame(tick);
+        return next;
+      });
+    };
 
-      const target = displayContent.length;
-      const tick = () => {
-        setVisibleLength((prev) => {
-          const next = prev + CHARS_PER_FRAME;
-          if (next >= target) return target;
-          rafRef.current = requestAnimationFrame(tick);
-          return next;
-        });
-      };
-
-      rafRef.current = requestAnimationFrame(tick);
-    }
-
+    rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [displayContent, isUser]);
+  }, [displayContent, isUser, isNew]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
