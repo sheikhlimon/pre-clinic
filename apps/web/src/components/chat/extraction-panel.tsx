@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Baby, MapPin, Stethoscope } from "lucide-react";
+import { Activity, Baby, MapPin } from "lucide-react";
 import type { Condition, ExtractionStatus } from "@/lib/types";
 import ConditionCard from "./condition-card";
 import InfoItem from "./info-item";
@@ -21,13 +21,6 @@ const STATUS_TEXT: Record<ExtractionStatus, string> = {
   complete: "",
 };
 
-const STATUS_COLORS: Record<ExtractionStatus, string> = {
-  gathering: "bg-slate-400",
-  extracting: "bg-[var(--color-terracotta)]",
-  searching: "bg-[var(--color-sage)]",
-  complete: "bg-emerald-500",
-};
-
 export default function ExtractionPanel({
   age,
   symptoms,
@@ -36,22 +29,8 @@ export default function ExtractionPanel({
   status,
   rounded = false,
 }: ExtractionPanelProps) {
-  const isPulsing = status === "extracting" || status === "searching";
-
   return (
-    <div className={`bg-white/70 p-5 backdrop-blur-sm dark:bg-[#1a1714]/70 ${rounded ? "rounded-2xl border border-[var(--color-cream-dark)] dark:border-[#2a2520]" : ""}`}>
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className={`relative flex h-2 w-2 items-center justify-center rounded-full ${STATUS_COLORS[status]} ${isPulsing ? "animate-pulse-ring" : ""}`}
-          />
-          <p className="font-display text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-            I understood
-          </p>
-        </div>
-        <Stethoscope className="h-3.5 w-3.5 text-[var(--color-terracotta)]" />
-      </div>
-
+    <div className={`${rounded ? "rounded-2xl border border-[var(--color-cream-dark)] bg-white/70 backdrop-blur-sm dark:border-[#2a2520] dark:bg-[#1a1714]/70" : ""}`}>
       <div className="space-y-3">
         {age && (
           <InfoItem

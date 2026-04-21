@@ -171,14 +171,19 @@ export default function ChatInterface() {
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* LEFT: Extraction Panel */}
         {hasExtraction && (
-          <div className="hidden w-72 flex-shrink-0 lg:block">
-            <ScrollArea className="h-full">
-              <ExtractionPanel
-                age={extraction.age}
-                conditions={extraction.conditions}
-                status={trials.length > 0 ? "complete" : extraction.status}
-                symptoms={extraction.symptoms}
-              />
+          <div className="hidden flex-shrink-0 lg:flex lg:flex-col lg:w-72 border-r border-[var(--color-cream-dark)] dark:border-[#2a2520]">
+            <p className="bg-[var(--color-cream)]/90 px-3 py-2 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-terracotta)] backdrop-blur-sm dark:bg-[#141210]/90">
+              Patient profile
+            </p>
+            <ScrollArea className="mt-2 h-full rounded-t-2xl bg-white/70 dark:bg-[#1a1714]/70">
+              <div className="p-4">
+                <ExtractionPanel
+                  age={extraction.age}
+                  conditions={extraction.conditions}
+                  status={trials.length > 0 ? "complete" : extraction.status}
+                  symptoms={extraction.symptoms}
+                />
+              </div>
             </ScrollArea>
           </div>
         )}
@@ -204,6 +209,7 @@ export default function ChatInterface() {
                 {messages.map((message) => (
                   <ChatMessage
                     content={message.content}
+                    isStreaming={message.isNew}
                     key={message.id}
                     role={message.role}
                   />
@@ -236,12 +242,12 @@ export default function ChatInterface() {
 
         {/* RIGHT: Trial Cards */}
         {trials.length > 0 && (
-          <div className="hidden w-80 flex-shrink-0 lg:block">
-            <p className="bg-[var(--color-cream)]/90 py-2 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-terracotta)] backdrop-blur-sm dark:bg-[#141210]/90">
+          <div className="hidden w-80 flex-shrink-0 overflow-hidden rounded-t-2xl lg:flex lg:flex-col">
+            <p className="bg-[var(--color-cream)]/90 px-3 py-2 font-display text-xs font-semibold uppercase tracking-widest text-[var(--color-terracotta)] backdrop-blur-sm dark:bg-[#141210]/90">
               Matching trials
             </p>
             <ScrollArea className="h-full">
-              <div className="space-y-3 px-2">
+              <div className="space-y-3 px-2 pb-10">
                 {trials.map((trial) => (
                   <TrialCard
                     key={trial.nctId}
