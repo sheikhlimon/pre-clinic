@@ -6,10 +6,6 @@ import { rankTrials } from "@/lib/trial-ranking";
 
 const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/;
 
-function stripJsonFromContent(content: string): string {
-  return content.replace(JSON_REGEX, "").trim();
-}
-
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -22,10 +18,14 @@ interface TrialResult {
   matchReasons: string[];
 }
 
+interface StreamWriter {
+  write: (chunk: Uint8Array) => Promise<void>;
+}
+
 async function handleExtractionAndSearch(
   fullText: string,
   encoder: TextEncoder,
-  controller: ReadableStreamDefaultController<Uint8Array>,
+  writer: StreamWriter,
 ): Promise<void> {
   const jsonMatch = fullText.match(JSON_REGEX);
   if (!jsonMatch) {
@@ -47,7 +47,7 @@ async function handleExtractionAndSearch(
     });
 
     // Send extraction data to frontend for extraction panel display
-    controller.enqueue(
+    await writer.write(
       encoder.encode(
         `data: ${JSON.stringify({ extractedData: extraction })}\n\n`,
       ),
@@ -99,7 +99,7 @@ async function handleExtractionAndSearch(
     console.log("Sending trials to frontend:", trials.length);
 
     try {
-      controller.enqueue(
+      await writer.write(
         encoder.encode(`data: ${JSON.stringify({ trials })}\n\n`),
       );
       // eslint-disable-next-line no-console
@@ -172,9 +172,10 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           model: process.env.OPENROUTER_MODEL || "openrouter/free",
           messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
-          max_tokens: 1000,
+          max_tokens: 500,
           temperature: 0.7,
           stream: true,
+          reasoning: { enabled: false },
         }),
       },
     );
@@ -199,50 +200,51 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Stream response
+    // Stream response — forward each LLM chunk to client immediately
     const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = response.body?.getReader();
-        if (!reader) {
-          controller.close();
-          return;
-        }
 
-        let fullText = "";
+    // Use a TransformStream so we can write to it imperatively
+    const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+    const writer = writable.getWriter();
 
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-              // Extract JSON from full text and search for trials
-              await handleExtractionAndSearch(fullText, encoder, controller);
-              break;
-            }
+    // Pump the LLM stream in the background
+    (async () => {
+      const reader = response.body?.getReader();
+      if (!reader) {
+        await writer.close();
+        return;
+      }
 
-            const chunk = new TextDecoder().decode(value);
-            fullText += processStreamChunk(chunk);
-          }
+      let fullText = "";
 
-          // Stream the non-JSON content to client
-          const cleanContent = stripJsonFromContent(fullText);
-          if (cleanContent && cleanContent.trim().length > 0) {
-            controller.enqueue(
-              encoder.encode(
-                `data: ${JSON.stringify({ content: cleanContent })}\n\n`,
-              ),
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = new TextDecoder().decode(value);
+          const content = processStreamChunk(chunk);
+          fullText += content;
+
+          // Forward each chunk to the client immediately
+          if (content) {
+            await writer.write(
+              encoder.encode(`data: ${JSON.stringify({ content })}\n\n`),
             );
           }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error("Stream error:", error);
         }
 
-        controller.close();
-      },
-    });
+        // After streaming completes, handle extraction and trial search
+        await handleExtractionAndSearch(fullText, encoder, writer);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Stream error:", error);
+      }
 
-    return new Response(stream, {
+      await writer.close();
+    })();
+
+    return new Response(readable, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",

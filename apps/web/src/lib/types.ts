@@ -33,4 +33,5 @@ export interface Message {
   content: string;
   trials?: TrialData[];
   extractedData?: ExtractedData;
+  isNew?: boolean;
 }

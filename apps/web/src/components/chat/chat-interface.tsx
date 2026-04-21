@@ -14,8 +14,6 @@ import MobileCardsPanel from "./mobile-cards-panel";
 import PromptCard from "./prompt-card";
 import TrialCard from "./trial-card";
 
-const JSON_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
-const XML_TAG_REGEX = /<\/?[a-zA-Z][\w-]*(?:\s[^>]*)?\/?>/g;
 const PROMPTS = [
   "I'm experiencing symptoms and want to find clinical trials that might help",
   "I've been diagnosed with cancer and looking for treatment options",
@@ -28,10 +26,6 @@ interface ExtractionState {
   status: ExtractionStatus;
 }
 
-function stripJsonFromContent(content: string): string {
-  return content.replace(JSON_REGEX, "").replace(XML_TAG_REGEX, "").trim();
-}
-
 export default function ChatInterface() {
   const {
     messages,
@@ -41,7 +35,6 @@ export default function ChatInterface() {
     handleSubmit,
     sendMessage,
     isLoading,
-    isStreaming,
     error,
     clearChat,
   } = useChat({ api: "/api/chat" });
@@ -208,14 +201,9 @@ export default function ChatInterface() {
           ) : (
             <div className="flex flex-1 overflow-y-auto px-2 pb-4 scrollbar-thin">
               <div className="mx-auto w-full max-w-3xl space-y-4 pt-3 pb-4">
-                {messages.map((message, i) => (
+                {messages.map((message) => (
                   <ChatMessage
-                    content={stripJsonFromContent(message.content)}
-                    isNew={
-                      message.role === "assistant" &&
-                      i === messages.length - 1 &&
-                      isLoading
-                    }
+                    content={message.content}
                     key={message.id}
                     role={message.role}
                   />

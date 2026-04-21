@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type { ExtractedData, Message, TrialData } from "./types";
 
 import type { ExtractedData, Message, TrialData } from "./types";
+import { cleanStreamContent } from "@/components/chat/chat-message";
 
 export interface UseChatOptions {
   api: string;
@@ -25,9 +26,7 @@ async function fetchChatResponse(api: string, messages: Message[]) {
         throw new Error(`OPENROUTER_ERROR:${body.message}`);
       }
     } catch (e) {
-      if (e instanceof Error) {
-        throw e;
-      }
+      if (e instanceof Error) throw e;
     }
     throw new Error(`API error: ${response.statusText}`);
   }
@@ -35,72 +34,44 @@ async function fetchChatResponse(api: string, messages: Message[]) {
   return response;
 }
 
-function processStreamChunk(
-  chunk: string,
-  onContent: (content: string) => void,
-  onExtractedData?: (data: ExtractedData) => void,
-  onTrials?: (trials: TrialData[]) => void,
-) {
-  const lines = chunk.split("\n");
-
-  for (const line of lines) {
-    if (!line.startsWith("data: ")) {
-      continue;
-    }
-
-    try {
-      const data = JSON.parse(line.slice(6));
-      if (data.content) {
-        onContent(data.content);
-      }
-      if (data.extractedData && onExtractedData) {
-        // eslint-disable-next-line no-console
-        console.log("processStreamChunk: Found extractedData");
-        onExtractedData(data.extractedData);
-      }
-      if (data.trials && onTrials) {
-        // eslint-disable-next-line no-console
-        console.log("processStreamChunk: Found trials:", data.trials.length);
-        onTrials(data.trials);
-      }
-    } catch {
-      // Skip unparseable lines
-    }
-  }
-}
+const CHARS_PER_TICK = 2;
+const TICK_MS = 30;
 
 export function useChat({ api }: UseChatOptions) {
   const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
+    if (typeof window === "undefined") return [];
     const saved = localStorage.getItem("chat_history");
-    if (!saved) {
-      return [];
-    }
-    try {
-      return JSON.parse(saved);
-    } catch {
-      return [];
-    }
+    if (!saved) return [];
+    try { return JSON.parse(saved); } catch { return []; }
   });
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Persist messages to localStorage
+  // Refs for the typing animation — bypasses React batching
+  const targetRef = useRef("");
+  const revealedRef = useRef(0);
+  const assistantIdRef = useRef("");
+  const streamDoneRef = useRef(false);
+  const metadataRef = useRef<{ extractedData?: ExtractedData; trials?: TrialData[] }>({});
+  const typingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Persist to localStorage
   useEffect(() => {
     if (messages.length > 0) {
-      localStorage.setItem("chat_history", JSON.stringify(messages));
+      const clean = messages.map(({ isNew, ...rest }) => rest);
+      localStorage.setItem("chat_history", JSON.stringify(clean));
     }
   }, [messages]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => { if (typingRef.current) clearInterval(typingRef.current); };
+  }, []);
+
   const sendMessage = useCallback(
     async (text: string) => {
-      if (!text.trim() || isLoading) {
-        return;
-      }
+      if (!text.trim() || isLoading) return;
 
       const userMessage: Message = {
         id: Date.now().toString(),
@@ -108,113 +79,104 @@ export function useChat({ api }: UseChatOptions) {
         content: text.trim(),
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      const assistantId = (Date.now() + 1).toString();
+      assistantIdRef.current = assistantId;
+      targetRef.current = "";
+      revealedRef.current = 0;
+      streamDoneRef.current = false;
+      metadataRef.current = {};
+
+      setMessages((prev) => [...prev, userMessage, { id: assistantId, role: "assistant", content: "", isNew: true }]);
       setIsLoading(true);
       setError(null);
 
+      // Start the animation ticker — it always chases targetRef
+      typingRef.current = setInterval(() => {
+        const target = targetRef.current;
+        const revealed = revealedRef.current;
+
+        if (revealed < target.length) {
+          revealedRef.current = Math.min(revealed + CHARS_PER_TICK, target.length);
+
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.id === assistantIdRef.current) {
+              updated[updated.length - 1] = {
+                ...last,
+                content: target.slice(0, revealedRef.current),
+              };
+            }
+            return updated;
+          });
+        } else if (streamDoneRef.current && revealed >= target.length) {
+          // Stream finished and animation caught up — final update with metadata
+          setMessages((prev) => {
+            const updated = [...prev];
+            const last = updated[updated.length - 1];
+            if (last?.id === assistantIdRef.current) {
+              updated[updated.length - 1] = {
+                ...last,
+                content: target,
+                isNew: false,
+                extractedData: metadataRef.current.extractedData,
+                trials: metadataRef.current.trials,
+              };
+            }
+            return updated;
+          });
+          clearInterval(typingRef.current!);
+          typingRef.current = null;
+        }
+      }, TICK_MS);
+
+      // Stream chunks from the server — grow targetRef as data arrives
       try {
         const newMessages = [...messages, userMessage];
         const response = await fetchChatResponse(api, newMessages);
-
         const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error("No response stream");
-        }
+        if (!reader) throw new Error("No response stream");
 
-        const assistantId = (Date.now() + 1).toString();
-        let assistantContent = "";
-        let messageAdded = false;
-        let streamingStarted = false;
-
-        let messageState: Message = {
-          id: assistantId,
-          role: "assistant",
-          content: "",
-        };
+        const decoder = new TextDecoder();
+        let rawContent = "";
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) {
-            break;
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split("\n\n");
+          buffer = parts.pop() || "";
+
+          for (const part of parts) {
+            for (const line of part.split("\n")) {
+              if (!line.startsWith("data: ")) continue;
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.content) {
+                  rawContent += data.content;
+                  targetRef.current = cleanStreamContent(rawContent);
+                }
+                if (data.extractedData) metadataRef.current.extractedData = data.extractedData;
+                if (data.trials) metadataRef.current.trials = data.trials;
+              } catch { /* skip */ }
+            }
           }
-
-          const chunk = new TextDecoder().decode(value);
-          processStreamChunk(
-            chunk,
-            (content) => {
-              assistantContent += content;
-
-              if (!streamingStarted && content) {
-                streamingStarted = true;
-                setIsStreaming(true);
-              }
-
-              messageState = { ...messageState, content: assistantContent };
-
-              if (messageAdded) {
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  const lastMsg = updated.at(-1);
-                  if (lastMsg?.id === assistantId) {
-                    updated[updated.length - 1] = { ...messageState };
-                  }
-                  return updated;
-                });
-              } else {
-                setMessages((prev) => [...prev, { ...messageState }]);
-                messageAdded = true;
-              }
-            },
-            (extractedData) => {
-              // eslint-disable-next-line no-console
-              console.log("use-chat: Updating extractedData");
-              messageState = { ...messageState, extractedData };
-              if (messageAdded) {
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  const lastMsg = updated.at(-1);
-                  if (lastMsg?.id === assistantId) {
-                    updated[updated.length - 1] = { ...messageState };
-                  }
-                  return updated;
-                });
-              }
-            },
-            (trials) => {
-              // eslint-disable-next-line no-console
-              console.log("use-chat: Received trials callback:", trials.length);
-              messageState = { ...messageState, trials };
-              if (messageAdded) {
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  const lastMsg = updated.at(-1);
-                  if (lastMsg?.id === assistantId) {
-                    // eslint-disable-next-line no-console
-                    console.log(
-                      "use-chat: Attaching trials to existing message",
-                    );
-                    updated[updated.length - 1] = { ...messageState };
-                  }
-                  return updated;
-                });
-              }
-            },
-          );
         }
-      } catch (error) {
-        if (error instanceof Error && error.message === "MISSING_API_KEY") {
+
+        streamDoneRef.current = true;
+      } catch (err) {
+        if (err instanceof Error && err.message === "MISSING_API_KEY") {
           setError("missing_api_key");
-        } else if (
-          error instanceof Error &&
-          error.message.startsWith("OPENROUTER_ERROR:")
-        ) {
-          setError(error.message.slice("OPENROUTER_ERROR:".length));
+        } else if (err instanceof Error && err.message.startsWith("OPENROUTER_ERROR:")) {
+          setError(err.message.slice("OPENROUTER_ERROR:".length));
         }
-        // eslint-disable-next-line no-console
-        console.error("Chat error:", error);
+        console.error("Chat error:", err);
+        streamDoneRef.current = true;
+        if (typingRef.current) { clearInterval(typingRef.current); typingRef.current = null; }
       } finally {
         setIsLoading(false);
-        setIsStreaming(false);
       }
     },
     [api, isLoading, messages],
@@ -238,6 +200,8 @@ export function useChat({ api }: UseChatOptions) {
   );
 
   const clearChat = useCallback(() => {
+    if (typingRef.current) clearInterval(typingRef.current);
+    typingRef.current = null;
     setMessages([]);
     localStorage.removeItem("chat_history");
     setError(null);
@@ -251,7 +215,6 @@ export function useChat({ api }: UseChatOptions) {
     handleSubmit,
     sendMessage,
     isLoading,
-    isStreaming,
     error,
     clearChat,
   };

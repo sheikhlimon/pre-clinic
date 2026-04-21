@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-const JSON_BLOCK_REGEX = /```json\s*\n?([\s\S]*?)\n?\s*```/g;
+const JSON_BLOCK_COMPLETE = /```json\s*\n?[\s\S]*?\n?\s*```/g;
+const JSON_BLOCK_OPEN = /```json\s*\n?/;
 const XML_TAG_REGEX = /<\/?[a-zA-Z][\w-]*(?:\s[^>]*)?\/?>/g;
-const CHARS_PER_FRAME = 3;
 
-function stripJsonBlocks(content: string): string {
+export function cleanStreamContent(content: string): string {
+  const openMatch = content.match(JSON_BLOCK_OPEN);
+  if (openMatch) {
+    const openIndex = content.indexOf(openMatch[0]);
+    const afterOpen = content.slice(openIndex + openMatch[0].length);
+    if (afterOpen.indexOf("```") === -1) {
+      content = content.slice(0, openIndex);
+    }
+  }
   return content
-    .replace(JSON_BLOCK_REGEX, "")
+    .replace(JSON_BLOCK_COMPLETE, "")
     .replace(XML_TAG_REGEX, "")
     .trim();
 }
@@ -16,48 +22,35 @@ function stripJsonBlocks(content: string): string {
 interface ChatMessageProps {
   content: string;
   role: "user" | "assistant";
-  isNew?: boolean;
 }
 
 export default function ChatMessage({
   content,
   role,
-  isNew = false,
 }: ChatMessageProps) {
   const isUser = role === "user";
-  const displayContent = isUser ? content : stripJsonBlocks(content);
+  const displayContent = isUser ? content : cleanStreamContent(content);
 
-  const [visibleLength, setVisibleLength] = useState(
-    isUser || !isNew ? displayContent.length : 0,
-  );
-  const rafRef = useRef(0);
-
-  useEffect(() => {
-    if (isUser || !isNew || !displayContent) return;
-
-    const target = displayContent.length;
-
-    const tick = () => {
-      setVisibleLength((prev) => {
-        const next = prev + CHARS_PER_FRAME;
-        if (next >= target) return target;
-        rafRef.current = requestAnimationFrame(tick);
-        return next;
-      });
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [displayContent, isUser, isNew]);
-
-  useEffect(() => {
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
-
-  if (!(isUser || displayContent)) return null;
-
-  const text = isUser ? displayContent : displayContent.slice(0, visibleLength);
-  const isTyping = !isUser && visibleLength < displayContent.length;
+  if (!(isUser || displayContent)) {
+    // Show typing dots for empty assistant messages (LLM is thinking)
+    if (!isUser) {
+      return (
+        <div className="flex justify-start animate-slideUpFade">
+          <div className="max-w-[85%] rounded-2xl border border-[var(--color-cream-dark)] bg-white/80 px-4 py-2.5 text-sm shadow-sm dark:border-[#2a2520] dark:bg-[#1a1714]/80">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:0ms]" />
+                <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:150ms]" />
+                <span className="inline-block h-1.5 w-1.5 animate-bounce rounded-full bg-[var(--color-terracotta)] [animation-delay:300ms]" />
+              </div>
+              <span className="text-slate-400 dark:text-slate-500">Thinking...</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div
@@ -70,18 +63,9 @@ export default function ChatMessage({
             : "border border-[var(--color-cream-dark)] bg-white/80 text-slate-700 shadow-sm dark:border-[#2a2520] dark:bg-[#1a1714]/80 dark:text-slate-200"
         }`}
       >
-        {text ? (
-          <p className="whitespace-pre-wrap">
-            {text}
-            {isTyping && (
-              <span className="ml-0.5 inline-block w-0.5 animate-pulse bg-slate-400" />
-            )}
-          </p>
-        ) : (
-          <p className="italic text-slate-400 dark:text-slate-500">
-            No content to display
-          </p>
-        )}
+        <p className="whitespace-pre-wrap">
+          {displayContent}
+        </p>
       </div>
     </div>
   );
